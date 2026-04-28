@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:postgres@postgres/app" // hardcoded because it's an internal docker connection
+  url      = env("DATABASE_URL") // hardcoded because it's an internal docker connection
 }
 
 // ============================================
@@ -18,27 +18,20 @@ model Company {
   id        Int      @id @default(autoincrement())
   name      String
   createdAt DateTime @default(now())
-  
-  // Branding
-  logoUrl     String? // MinIO URL for company logo
-  brandColor  String? // Hex color code for branding (e.g., #3B82F6)
-  
-  // Regional Settings
+
+  logoUrl     String?
+  brandColor  String?
+
   defaultCurrency  String  @default("USD")
-  defaultTimezone  String? // IANA timezone (e.g., America/New_York)
-  defaultLanguage  String  @default("en") // ISO language code (e.g., en, es, fr)
-  
-  // Email Notifications
+  defaultTimezone  String?
+  defaultLanguage  String  @default("en")
+
   emailNotificationsEnabled Boolean @default(true)
-  notificationEmail         String? // Email for system notifications
-  
-  // API Access
-  apiKey String? @unique // API key for integrations
-  
-  // Barcode Label Configuration
-  barcodeLabelConfig String? @db.Text // JSON configuration for barcode label printing
-  
-  // Relations
+  notificationEmail         String?
+
+  apiKey String? @unique
+  barcodeLabelConfig String? @db.Text
+
   users               User[]
   roles               Role[]
   assets              Asset[]
@@ -59,20 +52,19 @@ model Company {
 model Branch {
   id        Int      @id @default(autoincrement())
   name      String
-  code      String   // Numerical code for the branch (e.g., "01", "02")
-  address   String?  // Physical address of the branch
-  qrCodeUrl String?  // Generated QR code for the branch
+  code      String
+  address   String?
+  qrCodeUrl String?
   createdAt DateTime @default(now())
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  // Relations
+
   departments Department[]
   assets      Asset[]
   locations   Location[]
   users       User[]       @relation("UserBranch")
-  
+
   @@unique([code, companyId])
   @@index([companyId])
 }
@@ -80,24 +72,23 @@ model Branch {
 model Department {
   id        Int      @id @default(autoincrement())
   name      String
-  code      String   // Numerical code for the department (e.g., "01", "02")
-  qrCodeUrl String?  // Generated QR code for the department
+  code      String
+  qrCodeUrl String?
   createdAt DateTime @default(now())
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
+
   branchId Int
   branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  
+
   departmentHeadId Int?
   departmentHead   User? @relation("DepartmentHead", fields: [departmentHeadId], references: [id], onDelete: SetNull)
-  
-  // Relations
+
   assets    Asset[]
   locations Location[]
   users     User[]     @relation("UserDepartment")
-  
+
   @@unique([code, branchId])
   @@index([companyId])
   @@index([branchId])
@@ -106,42 +97,40 @@ model Department {
 
 model AssetType {
   id                Int      @id @default(autoincrement())
-  name              String   // e.g., "Machinery and equipment", "Furniture", "Technological equipment", "Vehicles"
-  code              String   // Numerical code for the asset type (e.g., "01", "02", "03", "04")
-  acronym           String?  // Short acronym for the asset type (e.g., "MACH", "FURN", "TECH", "VEH")
-  isDepreciable     Boolean  @default(true) // Whether assets of this type are depreciable
-  accountingAccount String?  // Accounting account number for this asset type
+  name              String
+  code              String
+  acronym           String?
+  isDepreciable     Boolean  @default(true)
+  accountingAccount String?
   createdAt         DateTime @default(now())
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  // Relations
+
   assets       Asset[]
   assetClasses AssetClass[]
-  
+
   @@unique([code, companyId])
   @@index([companyId])
 }
 
 model AssetClass {
   id                Int      @id @default(autoincrement())
-  code              String   // Code for the asset class
-  description       String   // Description of the asset class
-  accountingAccount String?  // Accounting account for this class
-  budgetCode        String?  // Budget code for this class
+  code              String
+  description       String
+  accountingAccount String?
+  budgetCode        String?
   createdAt         DateTime @default(now())
-  
+
   assetTypeId Int
   assetType   AssetType @relation(fields: [assetTypeId], references: [id], onDelete: Cascade)
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  // Relations
+
   assetSubclasses AssetSubclass[]
   assets          Asset[]
-  
+
   @@unique([code, assetTypeId])
   @@index([companyId])
   @@index([assetTypeId])
@@ -149,19 +138,18 @@ model AssetClass {
 
 model AssetSubclass {
   id           Int      @id @default(autoincrement())
-  description  String   // Description of the asset subclass
-  abbreviation String?  // Short abbreviation for the subclass
+  description  String
+  abbreviation String?
   createdAt    DateTime @default(now())
-  
+
   classId Int
   class   AssetClass @relation(fields: [classId], references: [id], onDelete: Cascade)
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  // Relations
+
   assets Asset[]
-  
+
   @@index([companyId])
   @@index([classId])
 }
@@ -174,26 +162,23 @@ model User {
   lastName     String
   createdAt    DateTime @default(now())
   isActive     Boolean  @default(true)
-  
-  // Custodian Information
-  position             String? // Job title or position
-  identificationNumber String? // Employee identification number
-  qrCodeUrl            String? // Generated QR code for the custodian
-  
+
+  position             String?
+  identificationNumber String?
+  qrCodeUrl            String?
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
+
   roleId Int?
   role   Role? @relation(fields: [roleId], references: [id], onDelete: SetNull)
-  
-  // Organizational assignment for custodians
+
   branchId Int?
   branch   Branch? @relation("UserBranch", fields: [branchId], references: [id], onDelete: SetNull)
-  
+
   departmentId Int?
   department   Department? @relation("UserDepartment", fields: [departmentId], references: [id], onDelete: SetNull)
-  
-  // Relations
+
   assignedAssets         AssetAssignment[]
   assignedAssetsDirectly Asset[]           @relation("AssignedAssets")
   createdAuditLogs       AuditLog[]        @relation("CreatedBy")
@@ -203,7 +188,11 @@ model User {
   movementsTo            AssetMovement[]   @relation("MovementsTo")
   enteredAssets          Asset[]           @relation("EnteredBy")
   departmentsHeaded      Department[]      @relation("DepartmentHead")
-  
+
+  // New Relations for Valuation & Usage
+  approvedRevaluations   AssetRevaluation[] @relation("ApprovedBy")
+  recordedUsageLogs      AssetUsageLog[]    @relation("RecordedBy")
+
   @@unique([email, companyId])
   @@unique([identificationNumber, companyId])
   @@index([companyId])
@@ -216,14 +205,13 @@ model Role {
   name        String
   description String?
   createdAt   DateTime @default(now())
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  // Relations
+
   users       User[]
   permissions RolePermission[]
-  
+
   @@unique([name, companyId])
   @@index([companyId])
 }
@@ -232,21 +220,20 @@ model Permission {
   id          Int      @id @default(autoincrement())
   name        String   @unique
   description String?
-  category    String // e.g., "assets", "finance", "maintenance", "inventory"
-  
-  // Relations
+  category    String
+
   roles RolePermission[]
 }
 
 model RolePermission {
   id Int @id @default(autoincrement())
-  
+
   roleId Int
   role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  
+
   permissionId Int
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  
+
   @@unique([roleId, permissionId])
   @@index([roleId])
   @@index([permissionId])
@@ -258,113 +245,92 @@ model RolePermission {
 
 model Asset {
   id          Int      @id @default(autoincrement())
-  assetTag    String // Unique identifier/barcode
+  assetTag    String
   name        String
   description String?
-  category    String // e.g., "IT Equipment", "Furniture", "Vehicles"
-  
-  // Financial Information
+  category    String
+
   acquisitionCost    Float
   currentValue       Float
   residualValue      Float    @default(0)
   acquisitionDate    DateTime
-  serviceDate        DateTime? // Date put into service
-  
-  // Supplier & Purchase Information
+  serviceDate        DateTime?
+
   supplier              String?
-  purchaseDocument      String? // Invoice number, contract reference, etc.
+  purchaseDocument      String?
   supplierSerialNumber  String?
   unitCost              Float?
-  quantity              Int?     @default(1)
-  currency              String?  @default("USD")
-  
-  // Depreciation Settings
-  depreciationMethod String   @default("STRAIGHT_LINE") // STRAIGHT_LINE, DECLINING_BALANCE, UNITS_OF_PRODUCTION, SUM_OF_YEARS_DIGITS
+  quantity              Int?      @default(1)
+  currency              String?   @default("USD")
+
+  depreciationMethod String   @default("STRAIGHT_LINE")
   usefulLifeYears    Int?
-  usefulLifeUnits    Int? // For units of production method
-  currentUnits       Int?     @default(0) // Current usage units
-  convention         String   @default("HALF_YEAR") // HALF_YEAR, FULL_YEAR, MID_MONTH
-  
-  // Depreciation Details (Extended)
+  usefulLifeUnits    Int?
+  currentUnits       Int?     @default(0)
+  convention         String   @default("HALF_YEAR")
+
   depreciationPercentage Float?
   depreciationStartDate  DateTime?
-  
-  // Accounting Information
-  accountingAssetAccount            String? // Asset account number
-  accumulatedDepreciationAccount    String? // Accumulated depreciation account
-  depreciationExpenseAccount        String? // Depreciation expense account
-  fixedAssetLedger                  String? // Ledger or module reference
-  
-  // Organizational Structure Codes
-  classCode       String? // Asset type/class code (e.g., VEH for vehicles, COMP for computers)
-  costCenterCode  String? // Cost center code
-  areaCode        String? // Area code
-  subareaCode     String? // Subarea code
-  branchCode      String? // Branch code
-  
-  // Activity & Project Tracking
-  activityProject String? // Project or activity link
-  
-  // Additional Information
-  observations    String? // Additional notes, special conditions, guarantees, restrictions
-  
-  // New organizational structure (replaces string codes with proper relations)
+
+  accountingAssetAccount            String?
+  accumulatedDepreciationAccount    String?
+  depreciationExpenseAccount        String?
+  fixedAssetLedger                  String?
+
+  classCode       String?
+  costCenterCode  String?
+  areaCode        String?
+  subareaCode     String?
+  branchCode      String?
+
+  activityProject String?
+  observations    String?
+
   branchId    Int?
   branch      Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  
+
   departmentId Int?
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  
+
   assetTypeId Int?
   assetType   AssetType? @relation(fields: [assetTypeId], references: [id], onDelete: SetNull)
-  
+
   assetClassId Int?
   assetClass   AssetClass? @relation(fields: [assetClassId], references: [id], onDelete: SetNull)
-  
+
   assetSubclassId Int?
   assetSubclass   AssetSubclass? @relation(fields: [assetSubclassId], references: [id], onDelete: SetNull)
-  
-  // User who entered the asset into the system
+
   enteredById Int?
   enteredBy   User? @relation("EnteredBy", fields: [enteredById], references: [id], onDelete: SetNull)
-  
-  // Additional physical identification
-  seriesNumber  String? // Series number (separate from serialNumber)
-  invoiceNumber String? // Invoice number (in addition to purchaseDocument)
-  
-  // Component information
-  component1 String? // Component 1 description
-  component2 String? // Component 2 description
-  component3 String? // Component 3 description
-  
-  // Status & Location
-  status        String   @default("ACTIVE") // ACTIVE, IN_REPAIR, DISPOSED, STOLEN, LOST
+
+  seriesNumber  String?
+  invoiceNumber String?
+
+  // REMOVED: component1, component2, component3 (now handled by AssetComponent)
+
+  status        String   @default("ACTIVE")
   disposalDate  DateTime?
   disposalValue Float?
-  
-  // Physical Information
+
   serialNumber  String?
   manufacturer  String?
   model         String?
-  
-  // Digital Records
-  photoUrl      String? // MinIO URL
-  qrCodeUrl     String? // Generated QR code for scanning
-  
-  // Metadata
+
+  photoUrl      String?
+  qrCodeUrl     String?
+
   createdAt DateTime @default(now())
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
+
   locationId Int?
   location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
-  
-  // User Assignment (for quick access to currently assigned user)
+
   assignedToUserId Int?
   assignedToUser   User? @relation("AssignedAssets", fields: [assignedToUserId], references: [id], onDelete: SetNull)
-  
-  // Relations
+
   assignments            AssetAssignment[]
   maintenanceRecords     MaintenanceRecord[]
   depreciationCalculations DepreciationCalculation[]
@@ -372,7 +338,13 @@ model Asset {
   attachments            AssetAttachment[]
   alerts                 AssetAlert[]
   movements              AssetMovement[]
-  
+
+  // NEW RELATIONS FOR VALUATION & ACCOUNTING
+  components             AssetComponent[]
+  revaluations           AssetRevaluation[]
+  usageLogs              AssetUsageLog[]
+  depreciationBooks      DepreciationBook[]
+
   @@unique([assetTag, companyId])
   @@index([companyId])
   @@index([locationId])
@@ -386,17 +358,88 @@ model Asset {
   @@index([enteredById])
 }
 
+// ============================================
+// NEW MODELS: VALUATION, COMPONENTS & USAGE
+// ============================================
+
+model AssetComponent {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  description        String?
+  cost               Float
+  usefulLifeYears    Int?
+  residualValue      Float    @default(0)
+  createdAt          DateTime @default(now())
+
+  assetId            Int
+  asset              Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+}
+
+model AssetRevaluation {
+  id                 Int      @id @default(autoincrement())
+  date               DateTime @default(now())
+  previousValue      Float
+  newValue           Float
+  reason             String   // e.g., "Appraisal", "Impairment", "Market Adjustment"
+  documentRef        String?  // Reference to physical appraisal document
+
+  assetId            Int
+  asset              Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  approvedById       Int?
+  approvedBy         User?    @relation("ApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@index([assetId])
+  @@index([approvedById])
+}
+
+model AssetUsageLog {
+  id                 Int      @id @default(autoincrement())
+  date               DateTime @default(now())
+  unitsAdded         Int
+  totalUnits         Int      // Running total at the time of log
+  notes              String?
+
+  assetId            Int
+  asset              Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  recordedById       Int?
+  recordedBy         User?    @relation("RecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@index([assetId])
+  @@index([recordedById])
+}
+
+model DepreciationBook {
+  id                 Int      @id @default(autoincrement())
+  name               String   // e.g., "Fiscal", "IFRS", "Internal"
+  method             String
+  usefulLifeYears    Int
+  residualValue      Float    @default(0)
+
+  assetId            Int
+  asset              Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+}
+
+// ============================================
+// ATTACHMENTS & ASSIGNMENTS
+// ============================================
+
 model AssetAttachment {
   id          Int      @id @default(autoincrement())
   fileName    String
-  fileUrl     String   // MinIO URL
-  fileType    String   // e.g., 'PHOTO', 'INVOICE', 'CONTRACT', 'INSURANCE_POLICY', 'WARRANTY', 'OTHER'
-  description String?  // Optional description of the attachment
+  fileUrl     String
+  fileType    String
+  description String?
   createdAt   DateTime @default(now())
-  
+
   assetId Int
   asset   Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  
+
   @@index([assetId])
   @@index([fileType])
 }
@@ -404,30 +447,28 @@ model AssetAttachment {
 model Location {
   id          Int      @id @default(autoincrement())
   name        String
-  type        String   // WAREHOUSE, OFFICE, BUILDING, ROOM, etc.
+  type        String
   address     String?
   latitude    Float?
   longitude   Float?
-  parentId    Int?     // For hierarchical locations
-  qrCodeUrl   String?  // Generated QR code for the location
+  parentId    Int?
+  qrCodeUrl   String?
   createdAt   DateTime @default(now())
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  // Link to organizational structure
+
   branchId Int?
   branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  
+
   departmentId Int?
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  
-  // Relations
+
   assets             Asset[]
   inventoryProcesses InventoryProcess[]
   movementsFrom      AssetMovement[]    @relation("MovementsFrom")
   movementsTo        AssetMovement[]    @relation("MovementsTo")
-  
+
   @@index([companyId])
   @@index([parentId])
   @@index([branchId])
@@ -439,24 +480,25 @@ model AssetAssignment {
   startDate   DateTime @default(now())
   endDate     DateTime?
   notes       String?
-  
-  briefDescription       String? // Brief description of the asset for custody purposes
-  fixedAssetCode         String? // Fixed asset code or plate number
-  initialCondition       String? // Initial condition of the asset when assigned
-  maintenanceObligations String? // Maintenance obligations and conditions of use
-  
+
+  briefDescription       String?
+  fixedAssetCode         String?
+  initialCondition       String?
+  maintenanceObligations String?
+
   assetId Int
   asset   Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  
+
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([assetId])
   @@index([userId])
 }
 
 // ============================================
-// DEPRECIATION & FINANCE
+// DEPRECIATION, MAINTENANCE, INVENTORY & AUDIT
+// (No changes needed below here, keeping for completeness)
 // ============================================
 
 model DepreciationCalculation {
@@ -468,36 +510,32 @@ model DepreciationCalculation {
   accumulatedDepreciation Float
   bookValue         Float
   method            String
-  
+
   assetId Int
   asset   Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  
+
   @@index([assetId])
   @@index([calculationDate])
 }
 
-// ============================================
-// MAINTENANCE
-// ============================================
-
 model MaintenanceRecord {
   id              Int      @id @default(autoincrement())
-  type            String // PREVENTIVE, CORRECTIVE, INSPECTION
+  type            String
   description     String
   cost            Float    @default(0)
   performedDate   DateTime
   nextDueDate     DateTime?
   notes           String?
-  
+
   assetId Int
   asset   Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
+
   workOrderId Int?
   workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
-  
+
   @@index([assetId])
   @@index([companyId])
   @@index([workOrderId])
@@ -507,53 +545,47 @@ model WorkOrder {
   id          Int      @id @default(autoincrement())
   title       String
   description String
-  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
-  status      String   @default("OPEN") // OPEN, IN_PROGRESS, COMPLETED, CANCELLED
+  priority    String   @default("MEDIUM")
+  status      String   @default("OPEN")
   createdAt   DateTime @default(now())
   dueDate     DateTime?
   completedAt DateTime?
   estimatedCost Float?
   actualCost    Float?
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
+
   createdById Int
   createdBy   User @relation("CreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
-  
+
   assignedToId Int?
   assignedTo   User? @relation("AssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
-  
-  // Relations
+
   maintenanceRecords MaintenanceRecord[]
-  
+
   @@index([companyId])
   @@index([createdById])
   @@index([assignedToId])
   @@index([status])
 }
 
-// ============================================
-// INVENTORY & COUNTING
-// ============================================
-
 model InventoryProcess {
   id          Int      @id @default(autoincrement())
-  type        String // INITIAL_LOAD, COUNTING, TRANSFER, RECEPTION
-  status      String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, CANCELLED
+  type        String
+  status      String   @default("IN_PROGRESS")
   startDate   DateTime @default(now())
   endDate     DateTime?
   notes       String?
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
+
   locationId Int?
   location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
-  
-  // Relations
+
   movements AssetMovement[]
-  
+
   @@index([companyId])
   @@index([locationId])
   @@index([status])
@@ -561,37 +593,30 @@ model InventoryProcess {
 
 model AssetMovement {
   id Int @id @default(autoincrement())
-  
-  // Link to the inventory process (TRANSFER or RECEPTION)
+
   processId Int
   process InventoryProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
-  
-  // Link to the asset being moved
+
   assetId Int
   asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  
-  // Source information
+
   fromLocationId Int?
   fromLocation Location? @relation("MovementsFrom", fields: [fromLocationId], references: [id], onDelete: SetNull)
-  
+
   fromUserId Int?
   fromUser User? @relation("MovementsFrom", fields: [fromUserId], references: [id], onDelete: SetNull)
-  
-  // Destination information
+
   toLocationId Int?
   toLocation Location? @relation("MovementsTo", fields: [toLocationId], references: [id], onDelete: SetNull)
-  
+
   toUserId Int?
   toUser User? @relation("MovementsTo", fields: [toUserId], references: [id], onDelete: SetNull)
-  
-  // Snapshot of asset state (for audit trail)
+
   previousStatus String?
   newStatus String?
-  
-  // Movement metadata
   notes String?
   movementDate DateTime @default(now())
-  
+
   @@index([processId])
   @@index([assetId])
   @@index([fromLocationId])
@@ -600,29 +625,25 @@ model AssetMovement {
   @@index([toUserId])
 }
 
-// ============================================
-// AUDIT & COMPLIANCE
-// ============================================
-
 model AuditLog {
   id          Int      @id @default(autoincrement())
-  action      String // CREATE, UPDATE, DELETE, TRANSFER, etc.
-  entityType  String // ASSET, USER, LOCATION, etc.
+  action      String
+  entityType  String
   entityId    Int
-  oldValues   String? // JSON
-  newValues   String? // JSON
+  oldValues   String?
+  newValues   String?
   timestamp   DateTime @default(now())
   ipAddress   String?
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
+
   userId Int
   user   User @relation("CreatedBy", fields: [userId], references: [id], onDelete: Cascade)
-  
+
   assetId Int?
   asset   Asset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
-  
+
   @@index([companyId])
   @@index([userId])
   @@index([assetId])
@@ -630,34 +651,24 @@ model AuditLog {
   @@index([entityType])
 }
 
-// ============================================
-// ALERTS & NOTIFICATIONS
-// ============================================
-
 model AlertSetting {
   id          Int      @id @default(autoincrement())
-  name        String   // User-friendly name for this alert rule
-  alertType   String   // DEPRECIATION_MILESTONE, BOOK_VALUE_THRESHOLD, FULLY_DEPRECIATED
+  name        String
+  alertType   String
   isEnabled   Boolean  @default(true)
-  
-  // Threshold values (which one is used depends on alertType)
-  thresholdPercentage Float?  // For DEPRECIATION_MILESTONE (e.g., 75 means alert at 75% depreciated)
-  thresholdAmount     Float?  // For BOOK_VALUE_THRESHOLD (e.g., alert when book value < this amount)
-  
-  // Optional filters to limit which assets this applies to
-  assetCategory       String? // If set, only applies to assets in this category
-  
-  // Notification settings
-  notifyUsers         Boolean @default(true)  // Whether to create notifications for users
-  
+
+  thresholdPercentage Float?
+  thresholdAmount     Float?
+  assetCategory       String?
+  notifyUsers         Boolean @default(true)
+
   createdAt   DateTime @default(now())
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
-  // Relations
+
   triggeredAlerts AssetAlert[]
-  
+
   @@index([companyId])
   @@index([isEnabled])
   @@index([alertType])
@@ -665,26 +676,25 @@ model AlertSetting {
 
 model AssetAlert {
   id              Int      @id @default(autoincrement())
-  alertType       String   // DEPRECIATION_MILESTONE, BOOK_VALUE_THRESHOLD, FULLY_DEPRECIATED
-  status          String   @default("ACTIVE") // ACTIVE, ACKNOWLEDGED, DISMISSED
-  message         String   // Human-readable alert message
-  
-  // Alert context data
-  currentValue    Float    // Book value or depreciation percentage at time of alert
-  thresholdValue  Float?   // The threshold that was crossed
-  
+  alertType       String
+  status          String   @default("ACTIVE")
+  message         String
+
+  currentValue    Float
+  thresholdValue  Float?
+
   triggeredAt     DateTime @default(now())
   acknowledgedAt  DateTime?
-  
+
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  
+
   assetId Int
   asset   Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  
+
   alertSettingId Int?
   alertSetting   AlertSetting? @relation(fields: [alertSettingId], references: [id], onDelete: SetNull)
-  
+
   @@index([companyId])
   @@index([assetId])
   @@index([status])
