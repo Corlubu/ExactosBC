@@ -1,35 +1,41 @@
+// src/server/trpc/procedures/createAssetClass.ts
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main"; // Usamos el procedure protegido
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
+import { TRPCError } from "@trpc/server";
 
-export const createAssetClass = baseProcedure
+export const createAssetClass = protectedProcedure
   .input(
     z.object({
-      authToken: z.string(),
+      // ELIMINADO: authToken: z.string()
       assetTypeId: z.number(),
       code: z.string().min(1, "Asset class code is required"),
       description: z.string().min(1, "Description is required"),
       accountingAccount: z.string().optional(),
       budgetCode: z.string().optional(),
-    })
+    }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
+  .mutation(async ({ input, ctx }) => {
+    // Ya no necesitamos requirePermission con token, usamos el contexto seguro
+    const { companyId, user } = ctx;
 
-    // Verify asset type exists and belongs to company
+    // Verificar que el assetType existe y pertenece a la compañía
     const assetType = await db.assetType.findFirst({
       where: {
         id: input.assetTypeId,
-        companyId: auth.companyId,
+        companyId: companyId,
       },
     });
 
     if (!assetType) {
-      throw new Error("Asset type not found");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Asset type not found",
+      });
     }
 
-    // Check if asset class code already exists for this asset type
+    // Verificar si el código ya existe
     const existingAssetClass = await db.assetClass.findFirst({
       where: {
         code: input.code,
@@ -38,12 +44,16 @@ export const createAssetClass = baseProcedure
     });
 
     if (existingAssetClass) {
-      throw new Error("An asset class with this code already exists for this asset type");
+      throw new TRPCError({
+        code: "CONFLICT",
+        message:
+          "An asset class with this code already exists for this asset type",
+      });
     }
 
     const assetClass = await db.assetClass.create({
       data: {
-        companyId: auth.companyId,
+        companyId: companyId,
         assetTypeId: input.assetTypeId,
         code: input.code,
         description: input.description,
@@ -55,10 +65,10 @@ export const createAssetClass = baseProcedure
       },
     });
 
-    // Create audit log
+    // Crear log de auditoría
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: user.id,
+      companyId: companyId,
       action: "CREATE",
       entityType: "ASSET_CLASS",
       entityId: assetClass.id,

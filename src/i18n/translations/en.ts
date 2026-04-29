@@ -30,6 +30,10 @@ export const en = {
     showing: "Showing",
     of: "of",
     selectLanguage: "Select Language",
+    retry: "Retry",
+    none: "None",
+    optional: "Optional",
+    update: "Update",
   },
 
   // Status labels
@@ -84,18 +88,21 @@ export const en = {
   app: {
     assetMaster: "AssetMaster",
     tagline: "Manage Your Assets With Confidence",
-    description: "Comprehensive fixed asset management and maintenance tracking for modern enterprises.",
+    description:
+      "Comprehensive fixed asset management and maintenance tracking for modern enterprises.",
     copyright: "© 2024 AssetMaster Web. All rights reserved.",
     startManaging: "Start Managing Your Assets Today",
-    joinThousands: "Join thousands of companies using AssetMaster to track, maintain, and optimize their fixed assets.",
+    joinThousands:
+      "Join thousands of companies using AssetMaster to track, maintain, and optimize their fixed assets.",
   },
 
   // Settings
   settings: {
     title: "Settings",
-    description: "Configure your AssetMaster system, manage users, and customize your experience.",
+    description:
+      "Configure your AssetMaster system, manage users, and customize your experience.",
     backToSettings: "Back to Settings",
-    
+
     // Company Settings
     company: {
       title: "Company Settings",
@@ -107,7 +114,7 @@ export const en = {
       companyId: "Company ID",
       companyIdDescription: "This is your unique company identifier",
       accountCreated: "Account Created",
-      
+
       // Branding
       branding: "Branding",
       companyLogo: "Company Logo",
@@ -118,10 +125,11 @@ export const en = {
       logoUploaded: "✓ Logo uploaded",
       removeLogo: "Remove and upload different logo",
       brandColor: "Brand Color",
-      brandColorDescription: "Choose a primary color for your brand (hex format)",
+      brandColorDescription:
+        "Choose a primary color for your brand (hex format)",
       brandColorPlaceholder: "#3B82F6",
       invalidHexColor: "Must be a valid hex color (e.g., #3B82F6)",
-      
+
       // Regional Settings
       regionalSettings: "Regional Settings",
       defaultCurrency: "Default Currency",
@@ -130,24 +138,28 @@ export const en = {
       languageRequired: "Language is required",
       defaultTimezone: "Default Timezone",
       selectTimezone: "Select timezone...",
-      
+
       // Email Notifications
       emailNotifications: "Email Notifications",
       enableEmailNotifications: "Enable Email Notifications",
-      emailNotificationsDescription: "Receive email alerts for important system events",
+      emailNotificationsDescription:
+        "Receive email alerts for important system events",
       notificationEmail: "Notification Email Address",
       notificationEmailPlaceholder: "notifications@company.com",
-      notificationEmailDescription: "Email address where system notifications will be sent",
+      notificationEmailDescription:
+        "Email address where system notifications will be sent",
       invalidEmailAddress: "Must be a valid email",
-      
+
       // API Access
       apiAccess: "API Access & Integrations",
       apiKey: "API Key",
       noApiKeyGenerated: "No API key generated",
-      apiKeyDescription: "Use this key to authenticate API requests. Keep it secure and don't share it publicly.",
+      apiKeyDescription:
+        "Use this key to authenticate API requests. Keep it secure and don't share it publicly.",
       apiDocumentation: "API Documentation",
-      apiDocumentationDescription: "API endpoints and integration guides will be available soon. The API key above will be used to authenticate your requests.",
-      
+      apiDocumentationDescription:
+        "API endpoints and integration guides will be available soon. The API key above will be used to authenticate your requests.",
+
       // Messages
       updateSuccess: "Company settings updated successfully",
       updateError: "Failed to update company settings",
@@ -160,7 +172,7 @@ export const en = {
       failedToLoad: "Failed to load company settings",
       retry: "Retry",
     },
-    
+
     // Locations
     locations: {
       title: "Physical Locations",
@@ -179,11 +191,12 @@ export const en = {
       locationDeleted: "Location deleted successfully",
       deleteConfirm: "Are you sure you want to delete this location?",
     },
-    
+
     // Branches
     branches: {
       title: "Branches",
-      subtitle: "Manage company branches with unique codes for asset identification",
+      subtitle:
+        "Manage company branches with unique codes for asset identification",
       addBranch: "Add Branch",
       newBranch: "New Branch",
       editBranch: "Edit Branch",
@@ -202,7 +215,8 @@ export const en = {
       failedToCreate: "Failed to create branch",
       failedToUpdate: "Failed to update branch",
       failedToDelete: "Failed to delete branch",
-      deleteConfirm: "Are you sure you want to delete this branch? This action cannot be undone.",
+      deleteConfirm:
+        "Are you sure you want to delete this branch? This action cannot be undone.",
       noBranches: "No branches yet",
       createFirst: "Create your first branch",
       loading: "Loading branches...",
@@ -212,11 +226,12 @@ export const en = {
       assets: "Assets",
       noAddress: "No address",
     },
-    
+
     // Departments
     departments: {
       title: "Departments",
-      subtitle: "Organize departments by branch with unique codes for asset tracking",
+      subtitle:
+        "Organize departments by branch with unique codes for asset tracking",
       addDepartment: "Add Department",
       newDepartment: "New Department",
       editDepartment: "Edit Department",
@@ -238,21 +253,24 @@ export const en = {
       failedToCreate: "Failed to create department",
       failedToUpdate: "Failed to update department",
       failedToDelete: "Failed to delete department",
-      deleteConfirm: "Are you sure you want to delete this department? This action cannot be undone.",
+      deleteConfirm:
+        "Are you sure you want to delete this department? This action cannot be undone.",
       noDepartments: "No departments yet",
       createFirst: "Create your first department",
       createBranchFirst: "Create a branch first to add departments.",
-      pleaseCreateBranch: "Please create at least one branch before adding departments.",
+      pleaseCreateBranch:
+        "Please create at least one branch before adding departments.",
       loading: "Loading departments...",
       code: "Code",
       name: "Name",
       notAssigned: "Not assigned",
     },
-    
+
     // Asset Types
     assetTypes: {
       title: "Asset Types",
-      subtitle: "Define asset type categories (Machinery, Furniture, Vehicles, etc.) with codes",
+      subtitle:
+        "Define asset type categories (Machinery, Furniture, Vehicles, etc.) with codes",
       addAssetType: "Add Asset Type",
       newAssetType: "New Asset Type",
       editAssetType: "Edit Asset Type",
@@ -282,7 +300,8 @@ export const en = {
       failedToCreate: "Failed to create asset type",
       failedToUpdate: "Failed to update asset type",
       failedToDelete: "Failed to delete asset type",
-      deleteConfirm: "Are you sure you want to delete this asset type? This action cannot be undone.",
+      deleteConfirm:
+        "Are you sure you want to delete this asset type? This action cannot be undone.",
       noAssetTypes: "No asset types yet",
       createFirst: "Create your first asset type",
       loading: "Loading asset types...",
@@ -294,11 +313,12 @@ export const en = {
       yes: "Yes",
       no: "No",
     },
-    
+
     // Asset Classes
     assetClasses: {
       title: "Asset Classes",
-      subtitle: "Define asset classes linked to asset types with accounting details",
+      subtitle:
+        "Define asset classes linked to asset types with accounting details",
       addClass: "Add Asset Class",
       newAssetClass: "New Asset Class",
       editClass: "Edit Asset Class",
@@ -321,20 +341,23 @@ export const en = {
       failedToCreate: "Failed to create asset class",
       failedToUpdate: "Failed to update asset class",
       failedToDelete: "Failed to delete asset class",
-      deleteConfirm: "Are you sure you want to delete this asset class? This action cannot be undone.",
+      deleteConfirm:
+        "Are you sure you want to delete this asset class? This action cannot be undone.",
       noAssetClasses: "No asset classes yet",
       createFirst: "Create your first asset class",
       createAssetTypeFirst: "Create an asset type first to add asset classes.",
-      pleaseCreateAssetType: "Please create at least one asset type before adding asset classes.",
+      pleaseCreateAssetType:
+        "Please create at least one asset type before adding asset classes.",
       loading: "Loading asset classes...",
       description: "Description",
       subclasses: "Subclasses",
     },
-    
+
     // Asset Subclasses
     assetSubclasses: {
       title: "Asset Subclasses",
-      subtitle: "Manage asset subclasses for detailed categorization within each asset class",
+      subtitle:
+        "Manage asset subclasses for detailed categorization within each asset class",
       addSubclass: "Add Asset Subclass",
       newSubclass: "New Asset Subclass",
       editSubclass: "Edit Asset Subclass",
@@ -355,20 +378,24 @@ export const en = {
       failedToCreate: "Failed to create asset subclass",
       failedToUpdate: "Failed to update asset subclass",
       failedToDelete: "Failed to delete asset subclass",
-      deleteConfirm: "Are you sure you want to delete this asset subclass? This action cannot be undone.",
+      deleteConfirm:
+        "Are you sure you want to delete this asset subclass? This action cannot be undone.",
       noSubclasses: "No asset subclasses yet",
       createFirst: "Create your first asset subclass",
-      createAssetClassFirst: "Create an asset class first to add asset subclasses.",
-      pleaseCreateAssetClass: "Please create at least one asset class before adding asset subclasses.",
+      createAssetClassFirst:
+        "Create an asset class first to add asset subclasses.",
+      pleaseCreateAssetClass:
+        "Please create at least one asset class before adding asset subclasses.",
       loading: "Loading asset subclasses...",
       description: "Description",
       assetType: "Asset Type",
     },
-    
+
     // Labels
     labels: {
       title: "Label Settings",
-      subtitle: "Customize barcode label layout, size, and displayed information",
+      subtitle:
+        "Customize barcode label layout, size, and displayed information",
       labelConfiguration: "Label Configuration",
       labelDimensions: "Label Dimensions",
       width: "Width",
@@ -409,7 +436,8 @@ export const en = {
       labelPreview: "Label Preview",
       showPreview: "Show Preview",
       hidePreview: "Hide Preview",
-      previewDisclaimer: "This is a preview of how your labels will appear when printed. Actual size may vary based on printer settings.",
+      previewDisclaimer:
+        "This is a preview of how your labels will appear when printed. Actual size may vary based on printer settings.",
       settingsUpdated: "Label settings updated successfully!",
       failedToUpdate: "Failed to update label settings",
       failedToLoad: "Failed to load settings",
@@ -418,11 +446,12 @@ export const en = {
       logo: "Logo",
       qrCode: "QR Code",
     },
-    
+
     // Alerts
     alerts: {
       title: "Alert Settings",
-      subtitle: "Configure automated alerts for asset depreciation milestones and thresholds",
+      subtitle:
+        "Configure automated alerts for asset depreciation milestones and thresholds",
       alertRules: "Alert Rules",
       activeAlerts: "Active Alerts",
       createRule: "Create Alert Rule",
@@ -441,10 +470,12 @@ export const en = {
       threshold: "Threshold",
       thresholdPlaceholder: "e.g., 80",
       depreciationPercentageThreshold: "Depreciation Percentage Threshold",
-      depreciationPercentageHelper: "Alert when asset reaches this percentage of depreciation",
+      depreciationPercentageHelper:
+        "Alert when asset reaches this percentage of depreciation",
       bookValueThresholdAmount: "Book Value Threshold",
       bookValueThresholdHelper: "Alert when book value falls below this amount",
-      fullyDepreciatedHelper: "This alert triggers when an asset becomes fully depreciated (book value reaches residual value).",
+      fullyDepreciatedHelper:
+        "This alert triggers when an asset becomes fully depreciated (book value reaches residual value).",
       assetCategory: "Asset Category (Optional)",
       assetCategoryPlaceholder: "Leave empty for all categories",
       assetCategoryHelper: "Limit this alert to specific asset category",
@@ -457,7 +488,8 @@ export const en = {
       checkNow: "Check Now",
       checking: "Checking...",
       noRulesConfigured: "No alert rules configured",
-      createFirstRule: "Create your first alert rule to get notified about important asset events",
+      createFirstRule:
+        "Create your first alert rule to get notified about important asset events",
       noActiveAlerts: "No active alerts",
       allWithinThresholds: "All assets are within configured thresholds",
       alertTriggered: "new alerts triggered",
@@ -476,7 +508,7 @@ export const en = {
       markAsRead: "Mark as Read",
       viewAsset: "View Asset",
     },
-    
+
     // Roles
     roles: {
       title: "Roles & Permissions",
@@ -486,9 +518,11 @@ export const en = {
       assetManager: "Asset Manager",
       assetManagerDescription: "Manage assets, locations, and assignments",
       employee: "Employee",
-      employeeDescription: "View assigned assets and update custody information",
+      employeeDescription:
+        "View assigned assets and update custody information",
       auditor: "Auditor",
-      auditorDescription: "Read-only access to all asset information and reports",
+      auditorDescription:
+        "Read-only access to all asset information and reports",
       editRole: "Edit Role",
       permissions: "Permissions",
       moduleAccess: "Module Access",
@@ -505,8 +539,25 @@ export const en = {
       permissionsSelected: "permissions selected",
       updateRole: "Update Role",
       createRole: "Create Role",
+      failedToLoad: "Failed to load roles",
+      aboutRoles: "About Roles & Permissions",
+      aboutRolesDescription:
+        "Roles define what users can do in the system. Assign roles to users in the",
+      aboutRolesDescription2: "section.",
+      noRoles: "No roles",
+      noRolesDescription:
+        "Create your first role to start managing user permissions.",
+      createFirstRole: "Create First Role",
+      userCount: "{count} {count, plural, one {user} other {users}}",
+      deleteRole: "Delete Role",
+      confirmDelete:
+        "Are you sure you want to delete the role '{roleName}'? This action cannot be undone.",
+      cannotDeleteRole:
+        "Cannot delete this role because it has {count} assigned {count, plural, one {user} other {users}}.",
+      roleDeletedSuccess: "Role deleted successfully",
+      roleDeletedError: "Failed to delete role",
     },
-    
+
     // Users
     users: {
       title: "User Management",
@@ -547,12 +598,14 @@ export const en = {
       selectBranchFirst: "Select a branch first to see departments",
       inactiveUsersNote: "Inactive users cannot log in to the system",
       aboutUserManagement: "About User Management",
-      aboutUserManagementText: "Users can be assigned roles that define their permissions throughout the system. Deactivated users cannot log in but their data is preserved for audit purposes. Manage roles and permissions in the",
+      aboutUserManagementText:
+        "Users can be assigned roles that define their permissions throughout the system. Deactivated users cannot log in but their data is preserved for audit purposes. Manage roles and permissions in the",
       rolesPermissionsLink: "Roles & Permissions",
       section: "section",
       updateUser: "Update User",
       createUser: "Create User",
-      deactivateConfirm: "Are you sure you want to deactivate {name}? They will no longer be able to log in.",
+      deactivateConfirm:
+        "Are you sure you want to deactivate {name}? They will no longer be able to log in.",
       noUsers: "No users found",
       noUsersActive: "There are no active users. Try showing all users.",
       noUsersCompany: "There are no users in your company yet.",
@@ -561,59 +614,71 @@ export const en = {
       loading: "Loading...",
       actions: "Actions",
     },
-    
+
     // Other Settings Features
     features: {
       alertSettings: {
         title: "Alert Settings",
-        description: "Configure automated alerts for depreciation milestones, book value thresholds, and more.",
+        description:
+          "Configure automated alerts for depreciation milestones, book value thresholds, and more.",
       },
       companySettings: {
         title: "Company Settings",
-        description: "Manage your company information, branding, and general preferences.",
+        description:
+          "Manage your company information, branding, and general preferences.",
       },
       locations: {
         title: "Physical Locations",
-        description: "Manage physical locations where assets are stored or used (warehouses, offices, buildings, etc.).",
+        description:
+          "Manage physical locations where assets are stored or used (warehouses, offices, buildings, etc.).",
       },
       branches: {
         title: "Branches",
-        description: "Manage company branches with unique codes for asset identification.",
+        description:
+          "Manage company branches with unique codes for asset identification.",
       },
       departments: {
         title: "Departments",
-        description: "Organize departments by branch with unique codes for asset tracking.",
+        description:
+          "Organize departments by branch with unique codes for asset tracking.",
       },
       assetTypes: {
         title: "Asset Types",
-        description: "Define asset type categories (Machinery, Furniture, Vehicles, etc.) with codes.",
+        description:
+          "Define asset type categories (Machinery, Furniture, Vehicles, etc.) with codes.",
       },
       assetClasses: {
         title: "Asset Classes",
-        description: "Define asset classes linked to asset types with accounting details and budget codes.",
+        description:
+          "Define asset classes linked to asset types with accounting details and budget codes.",
       },
       assetSubclasses: {
         title: "Asset Subclasses",
-        description: "Manage asset subclasses for detailed categorization within each asset class.",
+        description:
+          "Manage asset subclasses for detailed categorization within each asset class.",
       },
       labelSettings: {
         title: "Label Settings",
-        description: "Customize barcode label layout, size, and what information is displayed when printing.",
+        description:
+          "Customize barcode label layout, size, and what information is displayed when printing.",
       },
       userManagement: {
         title: "User Management",
-        description: "Add, edit, and manage user accounts with role-based access control.",
+        description:
+          "Add, edit, and manage user accounts with role-based access control.",
       },
       rolesPermissions: {
         title: "Roles & Permissions",
-        description: "Configure granular permissions for different user roles across all modules.",
+        description:
+          "Configure granular permissions for different user roles across all modules.",
       },
       dataManagement: {
         title: "Data Management",
-        description: "Import/export data, manage backups, and configure data retention policies.",
+        description:
+          "Import/export data, manage backups, and configure data retention policies.",
       },
     },
-    
+
     configure: "Configure",
     comingSoon: "Coming Soon",
   },
@@ -673,19 +738,19 @@ export const en = {
     assignedTo: "Assigned To",
     allUsers: "All Users",
     unassigned: "Unassigned",
-    
+
     // Table headers
     asset: "Asset",
     value: "Value",
     actions: "Actions",
-    
+
     // Status options
     statusActive: "Active",
     statusInRepair: "In Repair",
     statusDisposed: "Disposed",
     statusStolen: "Stolen",
     statusLost: "Lost",
-    
+
     // Asset detail
     backToAssets: "Back to Assets",
     basicInformation: "Basic Information",
@@ -693,7 +758,7 @@ export const en = {
     model: "Model",
     serialNumber: "Serial Number",
     description: "Description",
-    
+
     // Financial section
     financialInformation: "Financial Information",
     acquisitionCost: "Acquisition Cost",
@@ -701,28 +766,28 @@ export const en = {
     residualValue: "Residual Value",
     acquisitionDate: "Acquisition Date",
     serviceDate: "Service Date",
-    
+
     // Depreciation section
     depreciation: "Depreciation",
     depreciationMethod: "Method",
     usefulLife: "Useful Life",
     convention: "Convention",
     depreciationRate: "Depreciation Rate",
-    
+
     // Location & Assignment
     locationAssignment: "Location & Assignment",
     physicalLocation: "Physical Location",
-    
+
     // Supplier section
     supplierPurchase: "Supplier & Purchase",
     supplier: "Supplier",
     invoiceNumber: "Invoice Number",
     purchaseDocument: "Purchase Document",
     supplierSerialNumber: "Supplier Serial Number",
-    
+
     // Observations
     observations: "Observations",
-    
+
     // Photo & Barcode
     photo: "Photo",
     assetBarcode: "Asset Barcode",
@@ -732,13 +797,13 @@ export const en = {
     generateBarcode: "Generate Barcode",
     generating: "Generating...",
     regenerating: "Regenerating...",
-    
+
     // Quick stats
     quickStats: "Quick Stats",
     age: "Age",
     remainingLife: "Remaining Life",
     years: "years",
-    
+
     // New asset form
     addNewAsset: "Add New Fixed Asset",
     addNewAssetSubtitle: "Enter comprehensive details for the new asset",
@@ -748,7 +813,7 @@ export const en = {
     uploading: "Uploading...",
     photoUploaded: "✓ Photo uploaded successfully",
     removePhoto: "Remove and upload different photo",
-    
+
     // Form sections
     assetTag: "Asset Tag / ID",
     assetTagPlaceholder: "e.g., COMP-HQ-001",
@@ -759,7 +824,7 @@ export const en = {
     descriptionPlaceholder: "Detailed description of the asset...",
     categoryRequired: "Category is required",
     categoryPlaceholder: "e.g., Computer Equipment",
-    
+
     // Organizational structure
     organizationalStructure: "Organizational Structure",
     selectBranch: "Select branch...",
@@ -771,7 +836,7 @@ export const en = {
     costCenterCodePlaceholder: "e.g., CC-100",
     areaCode: "Area Code",
     areaCodePlaceholder: "e.g., AREA-01",
-    
+
     // Asset identification
     assetIdentification: "Asset Identification",
     serialNumberInternal: "Serial Number",
@@ -779,7 +844,7 @@ export const en = {
     seriesNumber: "Series Number",
     seriesNumberPlaceholder: "Series number",
     supplierSerialNumberPlaceholder: "Supplier/manufacturer serial number",
-    
+
     // Supplier & Purchase
     supplierPurchaseInfo: "Supplier & Purchase Information",
     supplierPlaceholder: "Supplier name",
@@ -790,14 +855,14 @@ export const en = {
     quantityPlaceholder: "1",
     currency: "Currency",
     currencyPlaceholder: "USD",
-    
+
     // Financial info form
     acquisitionCostPlaceholder: "0.00",
     acquisitionCostRequired: "Must be non-negative",
     currentValuePlaceholder: "0.00",
     currentValueRequired: "Must be non-negative",
     residualValuePlaceholder: "0.00",
-    
+
     // Depreciation settings
     depreciationSettings: "Depreciation Settings",
     straightLine: "Straight Line",
@@ -812,7 +877,7 @@ export const en = {
     depreciationPercentage: "Depreciation Percentage",
     depreciationPercentagePlaceholder: "e.g., 20",
     depreciationStartDate: "Depreciation Start Date",
-    
+
     // Accounting
     accountingInformation: "Accounting Information",
     assetAccountNumber: "Asset Account Number",
@@ -823,13 +888,13 @@ export const en = {
     depreciationExpensePlaceholder: "e.g., 6300",
     fixedAssetLedger: "Fixed Asset Ledger/Module",
     fixedAssetLedgerPlaceholder: "e.g., FA-01",
-    
+
     // Physical details
     physicalDetailsLocation: "Physical Details & Location",
     manufacturerPlaceholder: "e.g., Dell",
     modelPlaceholder: "e.g., XPS 15",
     selectLocation: "Select location...",
-    
+
     // Components
     assetComponents: "Asset Components",
     component1: "Component 1",
@@ -838,34 +903,38 @@ export const en = {
     component2Placeholder: "e.g., Keyboard",
     component3: "Component 3",
     component3Placeholder: "e.g., Mouse",
-    
+
     // Assignment
     assignmentResponsibility: "Assignment & Responsibility",
     personResponsible: "Person Responsible / User",
     custodyCertificateDetails: "Custody Certificate Details",
-    custodyCertificateMessage: "Complete the following information to formalize the custody assignment",
+    custodyCertificateMessage:
+      "Complete the following information to formalize the custody assignment",
     fixedAssetCode: "Fixed Asset Code / Plate Number",
     fixedAssetCodePlaceholder: "Will default to Asset Tag if not provided",
     briefDescription: "Brief Description of Asset",
     briefDescriptionPlaceholder: "Brief description for custody purposes...",
     initialCondition: "Initial Condition",
-    initialConditionPlaceholder: "Describe the condition of the asset at the time of assignment...",
+    initialConditionPlaceholder:
+      "Describe the condition of the asset at the time of assignment...",
     maintenanceObligations: "Maintenance Obligations",
-    maintenanceObligationsPlaceholder: "Describe maintenance responsibilities and conditions of use...",
-    
+    maintenanceObligationsPlaceholder:
+      "Describe maintenance responsibilities and conditions of use...",
+
     // Activity & Project
     activityProject: "Activity & Project",
     activityProjectLink: "Activity or Project Link",
     activityProjectPlaceholder: "e.g., Project XYZ, Department Initiative",
-    
+
     // Additional observations
     additionalObservations: "Additional Observations",
-    observationsPlaceholder: "Enter any special conditions, warranty information, restrictions, or other important notes...",
-    
+    observationsPlaceholder:
+      "Enter any special conditions, warranty information, restrictions, or other important notes...",
+
     // Actions
     creating: "Creating...",
     createAsset: "Create Asset",
-    
+
     // Messages
     assetCreated: "Asset created successfully!",
     failedToCreate: "Failed to create asset",
@@ -873,7 +942,7 @@ export const en = {
     barcodeGenerated: "Barcode generated successfully!",
     failedToGenerateBarcode: "Failed to generate barcode",
     noBarcodeToPrint: "No barcode available to print",
-    
+
     // Hints and labels
     uniqueIdentifier: "(Unique identifier)",
     exampleName: "(e.g., Dell Laptop)",
@@ -893,25 +962,26 @@ export const en = {
   // Finance
   finance: {
     title: "Finance & Analytics",
-    subtitle: "Comprehensive asset portfolio analysis and depreciation tracking",
-    
+    subtitle:
+      "Comprehensive asset portfolio analysis and depreciation tracking",
+
     // Tabs
     assetDistribution: "Asset Distribution",
     depreciationSchedule: "Depreciation Schedule",
     valueTrends: "Value Trends",
-    
+
     // Time range
     timeRange: "Time Range",
     sixMonths: "6 Months",
     twelveMonths: "12 Months",
     twentyFourMonths: "24 Months",
     thirtySixMonths: "36 Months",
-    
+
     // Loading states
     loadingFinancialData: "Loading financial data...",
     failedToLoadData: "Failed to load financial data",
     tryRefreshing: "Please try refreshing the page.",
-    
+
     // Asset Distribution Chart
     totalAssets: "Total Assets",
     totalValue: "Current Value",
@@ -923,7 +993,7 @@ export const en = {
     topLocationsByValue: "Top Locations by Value",
     categoryBreakdown: "Category Breakdown",
     count: "Count",
-    
+
     // Depreciation Chart
     latestBookValue: "Latest Book Value",
     accumulatedDepreciation: "Accumulated Depreciation",
@@ -935,8 +1005,9 @@ export const en = {
     period: "Period",
     assets: "Assets",
     accumulated: "Accumulated",
-    noDepreciationData: "No depreciation data available. Depreciation calculations will appear here once assets are depreciated.",
-    
+    noDepreciationData:
+      "No depreciation data available. Depreciation calculations will appear here once assets are depreciated.",
+
     // Value Trends Chart
     currentPortfolioValue: "Current Portfolio Value",
     originalInvestment: "Original investment",
@@ -946,21 +1017,23 @@ export const en = {
     ofPortfolio: "of portfolio",
     acquisition: "Acquisition",
     depreciated: "Depreciated",
-    noTrendData: "No trend data available. Asset value trends will appear here once depreciation calculations are performed.",
+    noTrendData:
+      "No trend data available. Asset value trends will appear here once depreciation calculations are performed.",
   },
 
   // Reports
   reports: {
     title: "Asset Reports",
-    subtitle: "Generate comprehensive reports with advanced filtering and export capabilities",
-    
+    subtitle:
+      "Generate comprehensive reports with advanced filtering and export capabilities",
+
     // Export buttons
     exportCSV: "Export CSV",
     exportPDF: "Export PDF",
     exportExcel: "Export Excel",
     exporting: "Exporting...",
     generating: "Generating...",
-    
+
     // Filters (reuse some from assets)
     filters: "Filters",
     clearAll: "Clear All",
@@ -982,12 +1055,12 @@ export const en = {
     allCustodians: "All Custodians",
     startDate: "Start Date",
     endDate: "End Date",
-    
+
     // Summary stats
     totalAssets: "Total Assets",
     totalValue: "Total Value",
     acquisitionCost: "Acquisition Cost",
-    
+
     // Table headers
     asset: "Asset",
     typeClass: "Type/Class",
@@ -995,11 +1068,11 @@ export const en = {
     branchDept: "Branch/Dept",
     acquisitionDate: "Acquisition Date",
     cost: "Cost",
-    
+
     // Empty state
     noAssetsFound: "No assets found",
     adjustFilters: "Try adjusting your filters to see more results.",
-    
+
     // Messages
     reportGenerated: "Report generated successfully!",
     assetsExported: "assets exported.",
@@ -1010,7 +1083,7 @@ export const en = {
     failedToExportExcel: "Failed to export Excel:",
     loadingAssets: "Loading assets...",
     failedToLoad: "Failed to load assets",
-    
+
     // PDF View
     assetReport: "Asset Report",
     generated: "Generated:",
@@ -1033,7 +1106,7 @@ export const en = {
   dashboard: {
     title: "Dashboard",
     welcomeBack: "Welcome back! Here's an overview of your assets.",
-    
+
     // Admin dashboard
     admin: {
       title: "Admin Dashboard",
@@ -1057,7 +1130,7 @@ export const en = {
       noRecentActivity: "No recent activity",
       noUpcomingMaintenance: "No upcoming maintenance scheduled",
     },
-    
+
     // Employee dashboard
     employee: {
       title: "My Dashboard",
@@ -1082,25 +1155,30 @@ export const en = {
       assetCondition: "Asset Condition",
       maintenanceReminders: "Maintenance Reminders",
     },
-    
+
     failedToLoad: "Failed to load dashboard data",
   },
 
   // Inventory
   inventory: {
     title: "Inventory Management",
-    subtitle: "Comprehensive tools for physical inventory, asset scanning, and bulk operations",
-    
+    subtitle:
+      "Comprehensive tools for physical inventory, asset scanning, and bulk operations",
+
     // Features
     scanningAssets: "Scanning Assets",
-    scanningDescription: "Use QR codes to quickly verify asset locations and conditions during physical inventory",
+    scanningDescription:
+      "Use QR codes to quickly verify asset locations and conditions during physical inventory",
     bulkPrintLabels: "Bulk Print Labels",
-    bulkPrintDescription: "Generate and print barcode labels for multiple assets at once",
+    bulkPrintDescription:
+      "Generate and print barcode labels for multiple assets at once",
     transferProcesses: "Transfer Processes",
-    transferDescription: "Manage asset transfers between locations, branches, or custodians",
+    transferDescription:
+      "Manage asset transfers between locations, branches, or custodians",
     initialInventory: "Initial Inventory",
-    initialInventoryDescription: "Set up your initial asset inventory with bulk import capabilities",
-    
+    initialInventoryDescription:
+      "Set up your initial asset inventory with bulk import capabilities",
+
     // Scan page
     scanTitle: "Scan Assets",
     scanSubtitle: "Scan asset QR codes to verify location and condition",
@@ -1117,7 +1195,7 @@ export const en = {
     enterAssetTag: "Enter an asset tag or scan a QR code to get started",
     viewFullDetails: "View Full Asset Details",
     scan: "Scan",
-    
+
     // Bulk print
     bulkPrintTitle: "Bulk Print Labels",
     bulkPrintSubtitle: "Select assets and print barcode labels",
@@ -1126,7 +1204,7 @@ export const en = {
     selectedCount: "Selected",
     selectAtLeastOne: "Please select at least one asset to print",
     noAssetsSelected: "No assets selected",
-    
+
     // Transfers
     transfersTitle: "Transfer Processes",
     transfersSubtitle: "Manage asset transfers",
@@ -1142,12 +1220,13 @@ export const en = {
     inProgress: "In Progress",
     completed: "Completed",
     cancelled: "Cancelled",
-    
+
     // New transfer
     newTransferTitle: "New Transfer Process",
     newTransferSubtitle: "Create a new asset transfer",
     createNewTransfer: "Create New Transfer",
-    initiateTransferMessage: "Initiate a new asset transfer or reception process",
+    initiateTransferMessage:
+      "Initiate a new asset transfer or reception process",
     transferDetails: "Transfer Details",
     processType: "Process Type",
     transfer: "Transfer",
@@ -1178,7 +1257,7 @@ export const en = {
     failedToCreate: "Failed to create transfer",
     atLeastOneAsset: "At least one asset must be added",
     assetRequired: "Asset is required",
-    
+
     // Transfer detail
     backToTransfers: "Back to Transfers",
     transferDetail: "Transfer Details",
@@ -1194,8 +1273,10 @@ export const en = {
     completeTransfer: "Complete Transfer",
     cancelTransfer: "Cancel Transfer",
     completing: "Completing...",
-    confirmComplete: "Are you sure you want to complete this transfer? This will update all asset locations and custodians.",
-    confirmCancel: "Are you sure you want to cancel this transfer? No changes will be made to the assets.",
+    confirmComplete:
+      "Are you sure you want to complete this transfer? This will update all asset locations and custodians.",
+    confirmCancel:
+      "Are you sure you want to cancel this transfer? No changes will be made to the assets.",
     transferCompleted: "Transfer completed successfully!",
     failedToComplete: "Failed to complete transfer",
     transferCancelled: "Transfer cancelled",
@@ -1205,26 +1286,31 @@ export const en = {
     started: "Started:",
     ended: "Ended:",
     movementSummary: "Movement Summary:",
-    
+
     // Transfers list
     backToInventory: "Back to Inventory",
     transfersAndReception: "Transfers & Reception",
     trackMovements: "Track asset movements with full audit trails",
     loadingTransfers: "Loading transfers...",
     noTransfersFound: "No transfers found",
-    createFirstTransfer: "Create your first transfer to start tracking asset movements.",
-    
+    createFirstTransfer:
+      "Create your first transfer to start tracking asset movements.",
+
     // Initial inventory
     initialInventoryTitle: "Initial Inventory - Bulk Import",
-    bulkImportSubtitle: "Import multiple assets from a CSV or Excel file to quickly populate your asset database",
+    bulkImportSubtitle:
+      "Import multiple assets from a CSV or Excel file to quickly populate your asset database",
     importInstructions: "Import Instructions",
     instruction1: "Download the CSV template to see the required format",
-    instruction2: "Fill in your asset data following the template structure (CSV or Excel format)",
-    instruction3: "Required fields: assetTag, name, category, acquisitionCost, currentValue, acquisitionDate",
+    instruction2:
+      "Fill in your asset data following the template structure (CSV or Excel format)",
+    instruction3:
+      "Required fields: assetTag, name, category, acquisitionCost, currentValue, acquisitionDate",
     instruction4: "Upload your completed CSV or Excel file",
     instruction5: "Review the parsed data and click Import",
     csvTemplate: "CSV Template",
-    downloadTemplate: "Download a template file with all required and optional columns (compatible with Excel)",
+    downloadTemplate:
+      "Download a template file with all required and optional columns (compatible with Excel)",
     downloadTemplateButton: "Download Template",
     uploadFile: "Upload File",
     clickToSelectFile: "Click to select CSV or Excel file",
@@ -1267,7 +1353,7 @@ export const en = {
     editCustodianDetails: "Edit Custodian Details",
     detailsUpdated: "Custodian details updated successfully",
     failedToUpdate: "Failed to update custodian details",
-    
+
     // Detail page
     custodianDetails: "Custodian Details",
     printCertificate: "Print Certificate",
@@ -1275,7 +1361,8 @@ export const en = {
     custodianInformation: "Custodian Information",
     assetsUnderCustody: "Assets Under Custody",
     acknowledgment: "Acknowledgment",
-    acknowledgmentText: "I acknowledge receipt of the above-listed assets and agree to maintain them in good condition according to company policies.",
+    acknowledgmentText:
+      "I acknowledge receipt of the above-listed assets and agree to maintain them in good condition according to company policies.",
   },
 
   // Maintenance
@@ -1283,7 +1370,8 @@ export const en = {
     title: "Maintenance",
     subtitle: "Track and manage asset maintenance schedules and history",
     comingSoon: "Coming Soon",
-    description: "Comprehensive maintenance tracking features will be available soon, including:",
+    description:
+      "Comprehensive maintenance tracking features will be available soon, including:",
     feature1: "Preventive maintenance scheduling",
     feature2: "Work order management",
     feature3: "Maintenance history tracking",

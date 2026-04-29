@@ -11,7 +11,9 @@ const tokenPayloadSchema = z.object({
 
 export type TokenPayload = z.infer<typeof tokenPayloadSchema>;
 
-export async function verifyAuthToken(authToken: string): Promise<TokenPayload> {
+export async function verifyAuthToken(
+  authToken: string,
+): Promise<TokenPayload> {
   try {
     const verified = jwt.verify(authToken, env.JWT_SECRET);
     const parsed = tokenPayloadSchema.parse(verified);
@@ -26,7 +28,7 @@ export async function verifyAuthToken(authToken: string): Promise<TokenPayload> 
 
 export async function authenticateRequest(authToken: string) {
   const payload = await verifyAuthToken(authToken);
-  
+
   const user = await db.user.findUnique({
     where: { id: payload.userId },
     include: {
@@ -42,41 +44,41 @@ export async function authenticateRequest(authToken: string) {
       company: true,
     },
   });
-  
+
   if (!user || !user.isActive) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "User not found or inactive",
     });
   }
-  
+
   if (user.companyId !== payload.companyId) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "Company mismatch",
     });
   }
-  
+
   return {
     user,
     companyId: payload.companyId,
-    permissions: user.role?.permissions.map(rp => rp.permission.name) ?? [],
+    permissions: user.role?.permissions.map((rp) => rp.permission.name) ?? [],
   };
 }
 
 export async function requirePermission(
   authToken: string,
-  requiredPermission: string
+  requiredPermission: string,
 ) {
   const auth = await authenticateRequest(authToken);
-  
+
   if (!auth.permissions.includes(requiredPermission)) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: `Permission denied: ${requiredPermission} required`,
     });
   }
-  
+
   return auth;
 }
 
@@ -104,4 +106,40 @@ export async function createAuditLog(params: {
       ipAddress: params.ipAddress,
     },
   });
+}
+
+/**
+ * NUEVA FUNCIÓN (Enterprise Architecture):
+ * Verifica los permisos usando el userId del Contexto (ctx), no el JWT.
+ */
+export async function checkContextPermission(
+  userId: number,
+  requiredPermission: string,
+) {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    include: {
+      role: {
+        include: {
+          permissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const permissions =
+    user?.role?.permissions.map((rp) => rp.permission.name) ?? [];
+
+  if (!permissions.includes(requiredPermission)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `Permission denied: ${requiredPermission} required`,
+    });
+  }
+
+  return { user, permissions };
 }

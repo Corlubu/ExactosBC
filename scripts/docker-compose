@@ -8,7 +8,8 @@ cd ../docker
 args=("$@")
 
 # if .env doesn't exist create it
-if [ ! -f ../.env ]; then
+if [ ! -f ../.env ];
+then
   touch ../.env
 fi
 
@@ -17,7 +18,8 @@ source ../.env
 
 function ensure_env_ends_with_newline() {
   # if the last line of the file is not empty, add a newline
-  if [ -n "$(tail -c 1 ../.env)" ]; then
+  if [ -n "$(tail -c 1 ../.env)" ];
+  then
     echo "" >> ../.env
   fi
 }
@@ -29,7 +31,8 @@ function add_to_env() {
 }
 
 # make sure we have ADMIN_PASSWORD
-if [ -z "$ADMIN_PASSWORD" ]; then
+if [ -z "$ADMIN_PASSWORD" ];
+then
   echo "ADMIN_PASSWORD is not set, generating and adding to .env..."
   # generate and add to the end of .env file
   ADMIN_PASSWORD=$(dd bs=64 count=1 if=/dev/urandom 2>/dev/null | base64 | LC_ALL=C tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
@@ -37,16 +40,27 @@ if [ -z "$ADMIN_PASSWORD" ]; then
 fi
 
 # make sure we have APP_NAME
-if [ -z "$APP_NAME" ]; then
+if [ -z "$APP_NAME" ];
+then
   # APP_NAME should be the name of the parent directory
   APP_NAME=$(basename $(dirname $(pwd)))
   echo "APP_NAME is not set, setting to $APP_NAME adding to .env..."
   add_to_env "APP_NAME=$APP_NAME"
 fi
 
-# make sure we have NODE_ENV
-if [ -z "$NODE_ENV" ]; then
-  echo "NODE_ENV is not set, setting to development and adding to .env..."
+# make sure we have NODE_ENV (CON ADVERTENCIA DE SEGURIDAD PARA PRODUCCIÓN)
+if [ -z "$NODE_ENV" ];
+then
+  echo "====================================================================="
+  echo " ⚠️  WARNING: NODE_ENV is not set in your .env file."
+  echo " ⚠️  Defaulting to 'development' mode."
+  echo " ⚠️  DO NOT USE THIS DEFAULT IN A PRODUCTION ENVIRONMENT!"
+  echo " ⚠️  If you are in production, cancel now (Ctrl+C) and set it!"
+  echo "====================================================================="
+
+  # Pausamos 3 segundos para asegurar que el operador o el log registre la alerta
+  sleep 3
+
   add_to_env "NODE_ENV=development"
   NODE_ENV=development
 fi

@@ -1,7 +1,4 @@
-import {
-  createCallerFactory,
-  createTRPCRouter,
-} from "~/server/trpc/main";
+import { createCallerFactory, createTRPCRouter } from "~/server/trpc/main";
 import { register } from "~/server/trpc/procedures/register";
 import { login } from "~/server/trpc/procedures/login";
 import { getCurrentUser } from "~/server/trpc/procedures/getCurrentUser";
@@ -79,17 +76,18 @@ import { listAssetsForReport } from "~/server/trpc/procedures/listAssetsForRepor
 import { exportAssetsReport } from "~/server/trpc/procedures/exportAssetsReport";
 import { exportAssetsReportPdf } from "~/server/trpc/procedures/exportAssetsReportPdf";
 import { exportAssetsReportExcel } from "~/server/trpc/procedures/exportAssetsReportExcel";
+import { runMonthlyDepreciation } from "./procedures/runMonthlyDepreciation";
 
 export const appRouter = createTRPCRouter({
   // Authentication
   register,
   login,
   getCurrentUser,
-  
+
   // Company
   getCompanySettings,
   updateCompanySettings,
-  
+
   // Users
   listUsers,
   createUser,
@@ -98,14 +96,14 @@ export const appRouter = createTRPCRouter({
   updateUserCustodianDetails,
   getAssetsByCustodian,
   generateCustodianCertificatePdf,
-  
+
   // Roles & Permissions
   listRoles,
   createRole,
   updateRole,
   deleteRole,
   listPermissions,
-  
+
   // Assets
   listAssets,
   getAsset,
@@ -115,52 +113,53 @@ export const appRouter = createTRPCRouter({
   deleteAsset,
   generateAssetBarcode,
   bulkImportAssets,
-  
+
   // Dashboard
   getDashboardStats,
   getEmployeeDashboardStats,
-  
+
   // Locations
   listLocations,
   createLocation,
   updateLocation,
   deleteLocation,
-  
+
   // Branches
   createBranch,
   listBranches,
   updateBranch,
   deleteBranch,
-  
+
   // Departments
   createDepartment,
   listDepartments,
   updateDepartment,
   deleteDepartment,
-  
+
   // Asset Types
   createAssetType,
   listAssetTypes,
   updateAssetType,
   deleteAssetType,
-  
+
   // Asset Classes
   createAssetClass,
   listAssetClasses,
   updateAssetClass,
   deleteAssetClass,
-  
+
   // Asset Subclasses
   createAssetSubclass,
   listAssetSubclasses,
   updateAssetSubclass,
   deleteAssetSubclass,
-  
+
   // Finance & Analytics
   getAssetDistribution,
   getDepreciationHistory,
   getAssetValueTrends,
-  
+  runMonthlyDepreciation: runMonthlyDepreciation,
+
   // Alerts
   createAlertSetting,
   updateAlertSetting,
@@ -169,11 +168,11 @@ export const appRouter = createTRPCRouter({
   checkDepreciationAlerts,
   listAssetAlerts,
   markAlertAsRead,
-  
+
   // MinIO
   getMinioBaseUrl,
   getPresignedUrl,
-  
+
   // Transfers & Reception
   createTransferProcess,
   addAssetsToTransfer,
@@ -181,13 +180,13 @@ export const appRouter = createTRPCRouter({
   cancelTransferProcess,
   listTransferProcesses,
   getTransferProcess,
-  
+
   // Barcode Generation
   generateBranchBarcode,
   generateDepartmentBarcode,
   generateLocationBarcode,
   generateCustodianBarcode,
-  
+
   // Reports
   listAssetsForReport,
   exportAssetsReport,

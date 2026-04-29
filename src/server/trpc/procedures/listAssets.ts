@@ -1,12 +1,12 @@
+// src/server/trpc/procedures/listAssets.ts
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listAssets = baseProcedure
+export const listAssets = protectedProcedure
   .input(
     z.object({
-      authToken: z.string(),
+      // ELIMINADO: authToken: z.string()
       cursor: z.number().optional(),
       limit: z.number().min(1).max(100).default(50),
       status: z.string().optional(),
@@ -17,52 +17,23 @@ export const listAssets = baseProcedure
       assetTypeId: z.number().optional(),
       assignedToUserId: z.number().optional(),
       search: z.string().optional(),
-    })
+    }),
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
+  .query(async ({ input, ctx }) => {
+    // Usamos directamente el companyId asegurado por el middleware
+    const { companyId } = ctx;
 
-    const where: {
-      companyId: number;
-      status?: string;
-      category?: string;
-      locationId?: number;
-      branchId?: number;
-      departmentId?: number;
-      assetTypeId?: number;
-      assignedToUserId?: number;
-      OR?: Array<{ name: { contains: string; mode: "insensitive" } } | { assetTag: { contains: string; mode: "insensitive" } }>;
-    } = {
-      companyId: auth.companyId,
+    const where: any = {
+      companyId: companyId,
     };
 
-    if (input.status) {
-      where.status = input.status;
-    }
-
-    if (input.category) {
-      where.category = input.category;
-    }
-
-    if (input.locationId) {
-      where.locationId = input.locationId;
-    }
-
-    if (input.branchId) {
-      where.branchId = input.branchId;
-    }
-
-    if (input.departmentId) {
-      where.departmentId = input.departmentId;
-    }
-
-    if (input.assetTypeId) {
-      where.assetTypeId = input.assetTypeId;
-    }
-
-    if (input.assignedToUserId) {
-      where.assignedToUserId = input.assignedToUserId;
-    }
+    if (input.status) where.status = input.status;
+    if (input.category) where.category = input.category;
+    if (input.locationId) where.locationId = input.locationId;
+    if (input.branchId) where.branchId = input.branchId;
+    if (input.departmentId) where.departmentId = input.departmentId;
+    if (input.assetTypeId) where.assetTypeId = input.assetTypeId;
+    if (input.assignedToUserId) where.assignedToUserId = input.assignedToUserId;
 
     if (input.search) {
       where.OR = [
@@ -76,32 +47,16 @@ export const listAssets = baseProcedure
       include: {
         location: true,
         branch: true,
-        department: {
-          include: {
-            branch: true,
-          },
-        },
+        department: { include: { branch: true } },
         assetType: true,
-        enteredBy: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
+        enteredBy: { select: { id: true, firstName: true, lastName: true } },
         assignments: {
-          where: {
-            endDate: null,
-          },
-          include: {
-            user: true,
-          },
+          where: { endDate: null },
+          include: { user: true },
           take: 1,
         },
       },
-      orderBy: {
-        id: "desc",
-      },
+      orderBy: { id: "desc" },
       take: input.limit + 1,
       skip: input.cursor ? 1 : 0,
       cursor: input.cursor ? { id: input.cursor } : undefined,
@@ -126,10 +81,7 @@ export const listAssets = baseProcedure
         acquisitionDate: asset.acquisitionDate,
         photoUrl: asset.photoUrl,
         location: asset.location
-          ? {
-              id: asset.location.id,
-              name: asset.location.name,
-            }
+          ? { id: asset.location.id, name: asset.location.name }
           : null,
         branch: asset.branch
           ? {

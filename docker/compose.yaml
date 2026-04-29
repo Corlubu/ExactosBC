@@ -1,21 +1,25 @@
 services:
   redis:
-    image: redis:7
+    image: redis:7-alpine # Usar versiones alpine reduce vulnerabilidades y peso
+    restart: unless-stopped
     volumes:
       - redis-data:/data
 
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
+    restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_DB: app
+      # Seguridad: Usamos variables de entorno con fallbacks (valores por defecto) para desarrollo
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-app}
     shm_size: 512MB
 
   minio:
     image: minio/minio:latest
+    restart: unless-stopped
     command: server /data --console-address ":9001"
     volumes:
       - minio-data:/data
@@ -27,7 +31,8 @@ services:
       - "${LISTEN_IP:-127.0.0.1}:9005:9001"
 
   nginx:
-    image: nginx:latest
+    image: nginx:alpine
+    restart: unless-stopped
     volumes:
       - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
       - htpasswd-cache:/etc/nginx/.htpasswd
@@ -59,13 +64,14 @@ services:
     command: >
       sh -c '
         if [ ! -f /adminer-permanent-login-key-volume/adminer-permanent-login-key ]; then
-          dd bs=64 count=1 if=/dev/urandom 2>/dev/null | base64 | LC_ALL=C tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 > /adminer-permanent-login-key-volume/adminer-permanent-login-key
+          dd bs=64 count=1 if=/dev/urandom 2>/dev/null | base64 | LC_ALL=C tr -dc '"'"'a-zA-Z0-9'"'"' | fold -w 32 | head -n 1 > /adminer-permanent-login-key-volume/adminer-permanent-login-key
           chmod 644 /adminer-permanent-login-key-volume/adminer-permanent-login-key
         fi
       '
 
   adminer:
     image: adminer:latest
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_started
@@ -73,15 +79,22 @@ services:
         condition: service_completed_successfully
     volumes:
       - adminer-permanent-login-key:/adminer-permanent-login-key-volume
+    environment:
+      # Pasamos las credenciales al contenedor de Adminer para que el script PHP las lea
+      ADMINER_DB_USER: ${DB_USER:-postgres}
+      ADMINER_DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      ADMINER_DB_NAME: ${DB_NAME:-app}
     configs:
       - source: adminer-index.php
         target: /var/www/html/index.php
         mode: 0444
 
+  # Contenedor Principal (API / Frontend)
   app:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+    restart: unless-stopped
     depends_on:
       redis:
         condition: service_started
@@ -102,11 +115,33 @@ services:
     working_dir: /app
     volumes:
       - ../:/app
-      - node-modules-cache:/app/node_modules:nocopy
+      # - node-modules-cache:/app/node_modules:nocopy
     tmpfs:
       - /app/.pnpm-store:ro,size=1k
     env_file:
       - ../.env
+
+  # -----------------------------------------------------------
+  # Arquitectura Escalable: Contenedor Worker (Procesos en 2do plano)
+  # Descomenta este bloque cuando configures BullMQ u otro sistema de colas.
+  # -----------------------------------------------------------
+  # worker:
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/Dockerfile
+  #   restart: unless-stopped
+  #   depends_on:
+  #     redis:
+  #       condition: service_started
+  #     postgres:
+  #       condition: service_started
+  #   command: /usr/bin/tini -- bash -c 'pnpm run worker'
+  #   working_dir: /app
+  #   volumes:
+  #     - ../:/app
+  #     - node-modules-cache:/app/node_modules:nocopy
+  #   env_file:
+  #     - ../.env
 
 volumes:
   postgres-data:
@@ -123,18 +158,18 @@ configs:
 
       function adminer_object() {
         class AdminerSoftware extends Adminer\Adminer {
-          function permanentLogin($$create = false) {
+          function permanentLogin($create = false) {
             return file_get_contents('/adminer-permanent-login-key-volume/adminer-permanent-login-key');
           }
 
           function credentials() {
-            // server, username and password for connecting to database
-            return array('postgres', 'postgres', 'postgres');
+            // Lee de las variables de entorno inyectadas
+            return array('postgres', getenv('ADMINER_DB_USER'), getenv('ADMINER_DB_PASSWORD'));
           }
 
           function database() {
-            // database name, will be escaped by Adminer
-            return 'app';
+            // Lee de las variables de entorno inyectadas
+            return getenv('ADMINER_DB_NAME');
           }
 
           function schemas() {
@@ -144,19 +179,19 @@ configs:
         return new AdminerSoftware();
       }
 
-      if (empty($$_COOKIE['adminer_permanent'])) {
-        $$_POST['auth'] = [
+      if (empty($_COOKIE['adminer_permanent'])) {
+        $_POST['auth'] = [
           'driver'    => 'pgsql',
           'server'    => 'postgres',
-          'username'  => 'postgres',
-          'password'  => 'postgres',
-          'db'        => 'app',
+          'username'  => getenv('ADMINER_DB_USER'),
+          'password'  => getenv('ADMINER_DB_PASSWORD'),
+          'db'        => getenv('ADMINER_DB_NAME'),
           'permanent' => 1,
         ];
       }
 
-      $$_GET['pgsql'] = 'postgres';
-      $$_GET['username'] = 'postgres';
-      $$_GET['db'] = 'app';
+      $_GET['pgsql'] = 'postgres';
+      $_GET['username'] = getenv('ADMINER_DB_USER');
+      $_GET['db'] = getenv('ADMINER_DB_NAME');
 
       include './adminer.php';

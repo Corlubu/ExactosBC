@@ -3,16 +3,20 @@ import { Fragment, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+// IMPORTANTE: Hooks Nativos de TanStack
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { X } from "lucide-react";
 import { useTRPC } from "~/trpc/react";
-import { useAuthStore } from "~/stores/auth";
 import { useLanguage } from "~/contexts/LanguageContext";
 
 const userFormSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters").optional().or(z.literal("")),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .optional()
+    .or(z.literal("")),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   roleId: z.number().nullable().optional(),
@@ -29,72 +33,26 @@ interface UserFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  user?: {
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    position?: string | null;
-    identificationNumber?: string | null;
-    isActive: boolean;
-    role?: { id: number; name: string } | null;
-    branch?: { id: number; name: string; code: string } | null;
-    department?: { id: number; name: string; code: string } | null;
-  };
+  user?: any; // Mantenido genérico por brevedad
 }
 
-export function UserFormModal({ isOpen, onClose, onSuccess, user }: UserFormModalProps) {
+export function UserFormModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  user,
+}: UserFormModalProps) {
   const { t } = useLanguage();
   const trpc = useTRPC();
-  const authToken = useAuthStore((state) => state.authToken);
+
+  // NUEVO: Instancia nativa
+  const queryClient = useQueryClient();
+
   const isEditMode = !!user;
 
-  // Fetch roles for dropdown
-  const rolesQuery = useQuery(
-    trpc.listRoles.queryOptions({
-      authToken: authToken || "",
-    })
-  );
-
-  // Fetch branches for dropdown
-  const branchesQuery = useQuery(
-    trpc.listBranches.queryOptions({
-      authToken: authToken || "",
-    })
-  );
-
-  // Fetch departments for dropdown
-  const departmentsQuery = useQuery(
-    trpc.listDepartments.queryOptions({
-      authToken: authToken || "",
-    })
-  );
-
-  const createMutation = useMutation(
-    trpc.createUser.mutationOptions({
-      onSuccess: () => {
-        toast.success(t("settings.users.userCreated"));
-        onSuccess();
-        onClose();
-      },
-      onError: (error) => {
-        toast.error(error.message || "Failed to create user");
-      },
-    })
-  );
-
-  const updateMutation = useMutation(
-    trpc.updateUser.mutationOptions({
-      onSuccess: () => {
-        toast.success(t("settings.users.userUpdated"));
-        onSuccess();
-        onClose();
-      },
-      onError: (error) => {
-        toast.error(error.message || "Failed to update user");
-      },
-    })
-  );
+  // Consultas limpias nativas
+  const rolesQuery = useQuery(trpc.listRoles.queryOptions());
+  const branchesQuery = useQuery(trpc.listBranches.queryOptions());
 
   const {
     register,
@@ -105,30 +63,49 @@ export function UserFormModal({ isOpen, onClose, onSuccess, user }: UserFormModa
     setValue,
   } = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      firstName: "",
-      lastName: "",
-      roleId: null,
-      position: "",
-      identificationNumber: "",
-      isActive: true,
-      branchId: null,
-      departmentId: null,
-    },
+    defaultValues: { isActive: true },
   });
 
   const selectedBranchId = watch("branchId");
 
-  // Filter departments by selected branch
+  // Consulta optimizada: Solo carga departamentos si hay sucursal seleccionada
+  const departmentsQuery = useQuery({
+    ...trpc.listDepartments.queryOptions(),
+    enabled: !!selectedBranchId,
+  });
+
   const availableDepartments = selectedBranchId
     ? departmentsQuery.data?.departments.filter(
-        (dept) => dept.branchId === selectedBranchId
+        (dept) => dept.branchId === selectedBranchId,
       )
-    : departmentsQuery.data?.departments;
+    : [];
 
-  // Reset form when modal opens/closes or user changes
+  const createMutation = useMutation(
+    trpc.createUser.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("settings.users.userCreated"));
+        // NUEVO: Recarga la tabla de usuarios
+        queryClient.invalidateQueries({ queryKey: [["listUsers"]] });
+        onSuccess();
+        onClose();
+      },
+      onError: (error) => toast.error(error.message || "Failed to create user"),
+    }),
+  );
+
+  const updateMutation = useMutation(
+    trpc.updateUser.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("settings.users.userUpdated"));
+        // NUEVO: Recarga la tabla de usuarios
+        queryClient.invalidateQueries({ queryKey: [["listUsers"]] });
+        onSuccess();
+        onClose();
+      },
+      onError: (error) => toast.error(error.message || "Failed to update user"),
+    }),
+  );
+
   useEffect(() => {
     if (isOpen) {
       if (user) {
@@ -145,18 +122,7 @@ export function UserFormModal({ isOpen, onClose, onSuccess, user }: UserFormModa
           departmentId: user.department?.id || null,
         });
       } else {
-        reset({
-          email: "",
-          password: "",
-          firstName: "",
-          lastName: "",
-          roleId: null,
-          position: "",
-          identificationNumber: "",
-          isActive: true,
-          branchId: null,
-          departmentId: null,
-        });
+        reset({ isActive: true });
       }
     }
   }, [isOpen, user, reset]);
@@ -164,26 +130,26 @@ export function UserFormModal({ isOpen, onClose, onSuccess, user }: UserFormModa
   const onSubmit = (data: UserFormData) => {
     if (isEditMode && user) {
       updateMutation.mutate({
-        authToken: authToken || "",
         userId: user.id,
         email: data.email !== user.email ? data.email : undefined,
         password: data.password || undefined,
-        firstName: data.firstName !== user.firstName ? data.firstName : undefined,
+        firstName:
+          data.firstName !== user.firstName ? data.firstName : undefined,
         lastName: data.lastName !== user.lastName ? data.lastName : undefined,
         roleId: data.roleId !== user.role?.id ? data.roleId : undefined,
         position: data.position || null,
         identificationNumber: data.identificationNumber || null,
         isActive: data.isActive !== user.isActive ? data.isActive : undefined,
         branchId: data.branchId !== user.branch?.id ? data.branchId : undefined,
-        departmentId: data.departmentId !== user.department?.id ? data.departmentId : undefined,
+        departmentId:
+          data.departmentId !== user.department?.id
+            ? data.departmentId
+            : undefined,
       });
     } else {
-      if (!data.password) {
-        toast.error("Password is required for new users");
-        return;
-      }
+      if (!data.password)
+        return toast.error("Password is required for new users");
       createMutation.mutate({
-        authToken: authToken || "",
         email: data.email,
         password: data.password,
         firstName: data.firstName,
@@ -227,236 +193,219 @@ export function UserFormModal({ isOpen, onClose, onSuccess, user }: UserFormModa
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <div className="flex items-center justify-between mb-6">
-                  <Dialog.Title as="h3" className="text-xl font-semibold text-gray-900">
-                    {isEditMode ? t("settings.users.editUser") : t("settings.users.addUser")}
+                <div className="mb-6 flex items-center justify-between">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-xl font-semibold text-gray-900"
+                  >
+                    {isEditMode
+                      ? t("settings.users.editUser")
+                      : t("settings.users.addUser")}
                   </Dialog.Title>
                   <button
                     onClick={onClose}
-                    className="text-gray-400 hover:text-gray-500 transition-colors"
+                    className="text-gray-400 transition-colors hover:text-gray-500"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                  {/* Email */}
+                  {/* Formulario Original... */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("auth.emailAddress")} *
                     </label>
                     <input
                       type="email"
                       {...register("email")}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       placeholder="user@example.com"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.email.message}
+                      </p>
                     )}
                   </div>
 
-                  {/* Password */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("auth.password")} {!isEditMode && "*"}
                     </label>
                     <input
                       type="password"
                       {...register("password")}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={isEditMode ? t("settings.users.leaveBlankPassword") : t("auth.enterPassword")}
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                      placeholder={
+                        isEditMode
+                          ? t("settings.users.leaveBlankPassword")
+                          : t("auth.enterPassword")
+                      }
                     />
                     {errors.password && (
-                      <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                    )}
-                    {isEditMode && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        {t("settings.users.leaveBlankPassword")}
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.password.message}
                       </p>
                     )}
                   </div>
 
-                  {/* First Name & Last Name */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("auth.firstName")} *
                       </label>
                       <input
                         type="text"
                         {...register("firstName")}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                         placeholder="John"
                       />
-                      {errors.firstName && (
-                        <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
-                      )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("auth.lastName")} *
                       </label>
                       <input
                         type="text"
                         {...register("lastName")}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                         placeholder="Doe"
                       />
-                      {errors.lastName && (
-                        <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
-                      )}
                     </div>
                   </div>
 
-                  {/* Role */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("settings.users.role")}
                     </label>
                     <select
                       {...register("roleId", {
                         setValueAs: (v) => (v === "" ? null : parseInt(v, 10)),
                       })}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       disabled={rolesQuery.isLoading}
                     >
-                      <option value="">{t("settings.users.noRoleAssigned")}</option>
+                      <option value="">
+                        {t("settings.users.noRoleAssigned")}
+                      </option>
                       {rolesQuery.data?.roles.map((role) => (
                         <option key={role.id} value={role.id}>
                           {role.name}
                         </option>
                       ))}
                     </select>
-                    {errors.roleId && (
-                      <p className="mt-1 text-sm text-red-600">{errors.roleId.message}</p>
-                    )}
                   </div>
 
-                  {/* Position */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("settings.users.position")}
                     </label>
                     <input
                       type="text"
                       {...register("position")}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={t("settings.users.positionPlaceholder")}
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     />
-                    {errors.position && (
-                      <p className="mt-1 text-sm text-red-600">{errors.position.message}</p>
-                    )}
                   </div>
 
-                  {/* Identification Number */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("settings.users.identificationNumber")}
                     </label>
                     <input
                       type="text"
                       {...register("identificationNumber")}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={t("settings.users.identificationPlaceholder")}
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     />
-                    {errors.identificationNumber && (
-                      <p className="mt-1 text-sm text-red-600">{errors.identificationNumber.message}</p>
-                    )}
                   </div>
 
-                  {/* Branch */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("assets.branch")}
                     </label>
                     <select
                       {...register("branchId", {
                         setValueAs: (v) => (v === "" ? null : parseInt(v, 10)),
                       })}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       disabled={branchesQuery.isLoading}
                       onChange={(e) => {
                         const value = e.target.value;
                         setValue("branchId", value ? parseInt(value) : null);
-                        setValue("departmentId", null); // Reset department when branch changes
+                        setValue("departmentId", null);
                       }}
                     >
-                      <option value="">{t("settings.users.noBranchAssigned")}</option>
+                      <option value="">
+                        {t("settings.users.noBranchAssigned")}
+                      </option>
                       {branchesQuery.data?.branches.map((branch) => (
                         <option key={branch.id} value={branch.id}>
                           {branch.code} - {branch.name}
                         </option>
                       ))}
                     </select>
-                    {errors.branchId && (
-                      <p className="mt-1 text-sm text-red-600">{errors.branchId.message}</p>
-                    )}
                   </div>
 
-                  {/* Department */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("assets.department")}
                     </label>
                     <select
                       {...register("departmentId", {
                         setValueAs: (v) => (v === "" ? null : parseInt(v, 10)),
                       })}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       disabled={departmentsQuery.isLoading || !selectedBranchId}
                     >
-                      <option value="">{t("settings.users.noDepartmentAssigned")}</option>
+                      <option value="">
+                        {t("settings.users.noDepartmentAssigned")}
+                      </option>
                       {availableDepartments?.map((department) => (
                         <option key={department.id} value={department.id}>
                           {department.code} - {department.name}
                         </option>
                       ))}
                     </select>
-                    {errors.departmentId && (
-                      <p className="mt-1 text-sm text-red-600">{errors.departmentId.message}</p>
-                    )}
-                    {!selectedBranchId && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        {t("settings.users.selectBranchFirst")}
-                      </p>
-                    )}
                   </div>
 
-                  {/* Active Status */}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
                     <div className="flex-1">
-                      <h3 className="text-sm font-medium text-gray-900">{t("settings.users.status")}</h3>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <h3 className="text-sm font-medium text-gray-900">
+                        {t("settings.users.status")}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
                         {t("settings.users.inactiveUsersNote")}
                       </p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <label className="relative inline-flex cursor-pointer items-center">
                       <input
                         type="checkbox"
                         {...register("isActive")}
-                        className="sr-only peer"
+                        className="peer sr-only"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
                     </label>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center justify-end space-x-3 pt-4 border-t">
+                  <div className="flex items-center justify-end space-x-3 border-t pt-4">
                     <button
                       type="button"
                       onClick={onClose}
                       disabled={isPending}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {t("common.cancel")}
                     </button>
                     <button
                       type="submit"
                       disabled={isPending || (!isDirty && isEditMode)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
-                      {isPending ? t("common.saving") : isEditMode ? t("settings.users.updateUser") : t("settings.users.createUser")}
+                      {isPending
+                        ? t("common.saving")
+                        : isEditMode
+                          ? t("settings.users.updateUser")
+                          : t("settings.users.createUser")}
                     </button>
                   </div>
                 </form>

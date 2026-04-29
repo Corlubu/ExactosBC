@@ -12,9 +12,9 @@ import SuperJSON from "superjson";
 
 import { AppRouter } from "~/server/trpc/root";
 import { getQueryClient } from "./query-client";
+// 1. Importamos el store de Zustand
+import { useAuthStore } from "~/stores/auth";
 
-// Now, with the newer @trpc/tanstack-react-query package, we no longer need createTRPCReact.
-// We use createTRPCContext instead.
 const { TRPCProvider, useTRPC, useTRPCClient } = createTRPCContext<AppRouter>();
 
 export { useTRPC, useTRPCClient };
@@ -40,10 +40,17 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
           false: httpBatchStreamLink({
             transformer: SuperJSON,
             url: getBaseUrl() + "/trpc",
+            // 2. Inyectamos el Token en los Headers globales
+            headers: () => {
+              const token = useAuthStore.getState().authToken;
+              return {
+                Authorization: token ? `Bearer ${token}` : undefined,
+              };
+            },
           }),
           true: httpSubscriptionLink({
             transformer: SuperJSON,
-            url: getBaseUrl() + "/trpc",
+            url: `${getBaseUrl()}/trpc`,
           }),
         }),
       ],

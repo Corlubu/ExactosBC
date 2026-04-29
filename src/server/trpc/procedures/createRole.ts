@@ -1,95 +1,58 @@
 import { z } from "zod";
-import { TRPCError } from "@trpc/server";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { TRPCError } from "@trpc/server";
+import { createAuditLog } from "~/server/utils/auth";
 
-export const createRole = baseProcedure
+export const createRole = protectedProcedure
   .input(
     z.object({
-      authToken: z.string(),
       name: z.string().min(1, "Role name is required"),
       description: z.string().optional(),
       permissionIds: z.array(z.number()),
-    })
+    }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.roles");
+  .mutation(async ({ input, ctx }) => {
+    const { companyId, user } = ctx;
 
-    // Check if role with this name already exists in the company
-    const existingRole = await db.role.findUnique({
-      where: {
-        name_companyId: {
-          name: input.name,
-          companyId: auth.companyId,
-        },
-      },
+    // Check if role name already exists
+    const existingRole = await db.role.findFirst({
+      where: { name: input.name, companyId: companyId },
     });
 
     if (existingRole) {
       throw new TRPCError({
         code: "CONFLICT",
-        message: "A role with this name already exists in your company",
+        message: "A role with this name already exists",
       });
     }
 
-    // Verify all permission IDs are valid
-    if (input.permissionIds.length > 0) {
-      const permissions = await db.permission.findMany({
-        where: {
-          id: { in: input.permissionIds },
-        },
-      });
-
-      if (permissions.length !== input.permissionIds.length) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "One or more invalid permission IDs",
-        });
-      }
-    }
-
-    // Create role with permissions
     const role = await db.role.create({
       data: {
+        companyId: companyId,
         name: input.name,
         description: input.description,
-        companyId: auth.companyId,
         permissions: {
-          create: input.permissionIds.map((permissionId) => ({
-            permissionId,
+          create: input.permissionIds.map((id) => ({
+            permissionId: id,
           })),
         },
       },
-      include: {
-        permissions: {
-          include: {
-            permission: true,
-          },
-        },
-      },
+      include: { permissions: { include: { permission: true } } },
     });
 
-    // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: user.id,
+      companyId: companyId,
       action: "CREATE",
       entityType: "ROLE",
       entityId: role.id,
       newValues: {
         name: role.name,
         description: role.description,
-        permissionIds: input.permissionIds,
+        permissions: input.permissionIds,
       },
     });
 
-    return {
-      role: {
-        id: role.id,
-        name: role.name,
-        description: role.description,
-        permissions: role.permissions.map((rp) => rp.permission),
-      },
-    };
+    return role;
   });

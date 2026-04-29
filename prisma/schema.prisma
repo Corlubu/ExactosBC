@@ -7,7 +7,17 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // hardcoded because it's an internal docker connection
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS (NUEVO: Para integridad de datos NIIF)
+// ============================================
+
+enum RevaluationType {
+  REVALUATION_SURPLUS  // Aumento de valor (NIC 16)
+  IMPAIRMENT_LOSS      // Deterioro (NIC 36)
+  REVERSAL_IMPAIRMENT  // Reversión de deterioro
 }
 
 // ============================================
@@ -28,9 +38,8 @@ model Company {
 
   emailNotificationsEnabled Boolean @default(true)
   notificationEmail         String?
-
-  apiKey String? @unique
-  barcodeLabelConfig String? @db.Text
+  apiKey                    String? @unique
+  barcodeLabelConfig        String? @db.Text
 
   users               User[]
   roles               Role[]
@@ -47,6 +56,9 @@ model Company {
   assetTypes          AssetType[]
   assetClasses        AssetClass[]
   assetSubclasses     AssetSubclass[]
+
+  // RELACIÓN NUEVA: Cierres contables
+  monthlyClosures     MonthlyBalanceClosure[]
 }
 
 model Branch {
@@ -189,7 +201,6 @@ model User {
   enteredAssets          Asset[]           @relation("EnteredBy")
   departmentsHeaded      Department[]      @relation("DepartmentHead")
 
-  // New Relations for Valuation & Usage
   approvedRevaluations   AssetRevaluation[] @relation("ApprovedBy")
   recordedUsageLogs      AssetUsageLog[]    @relation("RecordedBy")
 
@@ -255,13 +266,12 @@ model Asset {
   residualValue      Float    @default(0)
   acquisitionDate    DateTime
   serviceDate        DateTime?
-
   supplier              String?
   purchaseDocument      String?
   supplierSerialNumber  String?
   unitCost              Float?
-  quantity              Int?      @default(1)
-  currency              String?   @default("USD")
+  quantity              Int?     @default(1)
+  currency              String?  @default("USD")
 
   depreciationMethod String   @default("STRAIGHT_LINE")
   usefulLifeYears    Int?
@@ -307,8 +317,6 @@ model Asset {
   seriesNumber  String?
   invoiceNumber String?
 
-  // REMOVED: component1, component2, component3 (now handled by AssetComponent)
-
   status        String   @default("ACTIVE")
   disposalDate  DateTime?
   disposalValue Float?
@@ -316,10 +324,8 @@ model Asset {
   serialNumber  String?
   manufacturer  String?
   model         String?
-
   photoUrl      String?
   qrCodeUrl     String?
-
   createdAt DateTime @default(now())
 
   companyId Int
@@ -339,13 +345,18 @@ model Asset {
   alerts                 AssetAlert[]
   movements              AssetMovement[]
 
-  // NEW RELATIONS FOR VALUATION & ACCOUNTING
+  // RELATIONS FOR VALUATION & ACCOUNTING
   components             AssetComponent[]
   revaluations           AssetRevaluation[]
   usageLogs              AssetUsageLog[]
   depreciationBooks      DepreciationBook[]
+  monthlyBalances        MonthlyBalanceClosure[] // NUEVO
 
   @@unique([assetTag, companyId])
+
+  // NUEVOS ÍNDICES DE RENDIMIENTO PARA BÚSQUEDAS FRECUENTES
+  @@index([assetTag])
+  @@index([serialNumber])
   @@index([companyId])
   @@index([locationId])
   @@index([status])
@@ -359,7 +370,7 @@ model Asset {
 }
 
 // ============================================
-// NEW MODELS: VALUATION, COMPONENTS & USAGE
+// VALUATION, COMPONENTS & USAGE
 // ============================================
 
 model AssetComponent {
@@ -382,8 +393,13 @@ model AssetRevaluation {
   date               DateTime @default(now())
   previousValue      Float
   newValue           Float
-  reason             String   // e.g., "Appraisal", "Impairment", "Market Adjustment"
-  documentRef        String?  // Reference to physical appraisal document
+
+  // NUEVOS CAMPOS DE INTEGRIDAD NIIF
+  type               RevaluationType @default(REVALUATION_SURPLUS)
+  impactsPAndL       Boolean         @default(false) // Si es True impacta P&G (NIC 36), False impacta Patrimonio (NIC 16)
+  reason             String          // Motivo breve
+  legalJustification String?         @db.Text // Texto largo para explicar el motivo técnico/legal
+  documentRef        String?         // Referencia al peritaje físico
 
   assetId            Int
   asset              Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
@@ -393,13 +409,14 @@ model AssetRevaluation {
 
   @@index([assetId])
   @@index([approvedById])
+  @@index([type]) // Índice por tipo de revaluación
 }
 
 model AssetUsageLog {
   id                 Int      @id @default(autoincrement())
   date               DateTime @default(now())
   unitsAdded         Int
-  totalUnits         Int      // Running total at the time of log
+  totalUnits         Int
   notes              String?
 
   assetId            Int
@@ -414,7 +431,7 @@ model AssetUsageLog {
 
 model DepreciationBook {
   id                 Int      @id @default(autoincrement())
-  name               String   // e.g., "Fiscal", "IFRS", "Internal"
+  name               String
   method             String
   usefulLifeYears    Int
   residualValue      Float    @default(0)
@@ -422,6 +439,35 @@ model DepreciationBook {
   assetId            Int
   asset              Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
+  @@index([assetId])
+}
+
+// ============================================
+// NUEVA TABLA: CIERRES CONTABLES (MONTHLY BALANCES)
+// ============================================
+
+model MonthlyBalanceClosure {
+  id                      Int      @id @default(autoincrement())
+  year                    Int      // Ej: 2024
+  month                   Int      // Ej: 12 (Diciembre)
+  closureDate             DateTime @default(now())
+
+  acquisitionCost         Float    // Costo histórico al cierre de ese mes
+  currentValue            Float    // Valor neto en libros al cierre
+  accumulatedDepreciation Float    // Depreciación acumulada total hasta esa fecha
+  monthlyDepreciation     Float    // Gasto de depreciación de ese mes específico
+
+  assetId                 Int
+  asset                   Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  companyId               Int
+  company                 Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Un activo solo puede tener un cierre por año/mes
+  @@unique([assetId, year, month])
+
+  // Índices vitales para reportes de finanzas y dashboards rápidos
+  @@index([companyId, year, month])
   @@index([assetId])
 }
 
@@ -498,7 +544,6 @@ model AssetAssignment {
 
 // ============================================
 // DEPRECIATION, MAINTENANCE, INVENTORY & AUDIT
-// (No changes needed below here, keeping for completeness)
 // ============================================
 
 model DepreciationCalculation {
@@ -682,7 +727,6 @@ model AssetAlert {
 
   currentValue    Float
   thresholdValue  Float?
-
   triggeredAt     DateTime @default(now())
   acknowledgedAt  DateTime?
 
