@@ -117,3 +117,4 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 export const createTRPCRouter = t.router;
 export const baseProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+export const createCallerFactory = t.createCallerFactory;
