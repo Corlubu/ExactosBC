@@ -8,10 +8,11 @@ export const minioBaseUrl = getBaseUrl({ port: 9000 });
 const parsedUrl = new URL(minioBaseUrl);
 
 export const minioClient = new Client({
-  endPoint: parsedUrl.hostname, // Esto enviará "localhost" puro, sin el puerto
-  port: parseInt(parsedUrl.port) || 9000, // Enviamos el puerto por separado
+  endPoint:
+    process.env.NODE_ENV === "development" ? "minio" : parsedUrl.hostname,
+
+  port: parseInt(parsedUrl.port) || 9000,
   useSSL: parsedUrl.protocol === "https:",
-  // Asegúrate de que estas sean las credenciales reales de tu contenedor MinIO local
   accessKey: "admin",
   secretKey: env.ADMIN_PASSWORD,
 });

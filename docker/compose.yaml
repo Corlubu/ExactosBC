@@ -13,8 +13,8 @@ services:
     environment:
       # Seguridad: Usamos variables de entorno con fallbacks (valores por defecto) para desarrollo
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Postgresql@2026}
+      POSTGRES_DB: ${DB_NAME:-exactosbc}
     shm_size: 512MB
 
   minio:
@@ -23,9 +23,11 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio-data:/data
+    env_file:
+      - ../.env
     environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: ${ADMIN_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
       - "${LISTEN_IP:-127.0.0.1}:9000:9000"
       - "${LISTEN_IP:-127.0.0.1}:9005:9001"
@@ -91,10 +93,13 @@ services:
 
   # Contenedor Principal (API / Frontend)
   app:
+    container_name: ExactosBC-App
     build:
       context: ..
       dockerfile: docker/Dockerfile
     restart: unless-stopped
+    ports:
+      - "3000:3000"
     depends_on:
       redis:
         condition: service_started
@@ -115,7 +120,7 @@ services:
     working_dir: /app
     volumes:
       - ../:/app
-      # - node-modules-cache:/app/node_modules:nocopy
+      - node-modules-cache:/app/node_modules:nocopy
     tmpfs:
       - /app/.pnpm-store:ro,size=1k
     env_file:
