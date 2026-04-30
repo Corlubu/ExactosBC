@@ -246,7 +246,6 @@ function NewAssetPage() {
 
   const onSubmit = (data: AssetForm) => {
     createAssetMutation.mutate({
-      authToken: authToken || "",
       ...data,
       photoUrl: photoUrl || undefined,
     });
