@@ -1,12 +1,10 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission } from "~/server/utils/auth";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { AssetService } from "~/server/services/asset.service";
 import { handleTrpcError } from "~/server/trpc/error-mapper";
 
-// Extraemos el esquema para que pueda ser reusado si es necesario
 export const createAssetInputSchema = z.object({
-  authToken: z.string(),
+  // Nota: authToken eliminado. Ya no es necesario enviarlo en el body.
   assetTag: z.string().min(1, "Asset tag is required"),
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
@@ -38,7 +36,6 @@ export const createAssetInputSchema = z.object({
   locationId: z.number().optional(),
   photoUrl: z.string().optional(),
 
-  // Supplier & Purchase Information
   supplier: z.string().optional(),
   purchaseDocument: z.string().optional(),
   supplierSerialNumber: z.string().optional(),
@@ -46,17 +43,14 @@ export const createAssetInputSchema = z.object({
   quantity: z.number().int().min(1).optional(),
   currency: z.string().optional(),
 
-  // Depreciation Details
   depreciationPercentage: z.number().min(0).max(100).optional(),
   depreciationStartDate: z.date().optional(),
 
-  // Accounting Information
   accountingAssetAccount: z.string().optional(),
   accumulatedDepreciationAccount: z.string().optional(),
   depreciationExpenseAccount: z.string().optional(),
   fixedAssetLedger: z.string().optional(),
 
-  // Organizational Structure
   classCode: z.string().optional(),
   costCenterCode: z.string().optional(),
   areaCode: z.string().optional(),
@@ -66,11 +60,9 @@ export const createAssetInputSchema = z.object({
   departmentId: z.number().optional(),
   assetTypeId: z.number().optional(),
 
-  // Additional identification
   seriesNumber: z.string().optional(),
   invoiceNumber: z.string().optional(),
 
-  // Components
   components: z
     .array(
       z.object({
@@ -82,41 +74,35 @@ export const createAssetInputSchema = z.object({
     )
     .optional(),
 
-  // Activity & Project
   activityProject: z.string().optional(),
   observations: z.string().optional(),
-
-  // User Assignment
   assignedToUserId: z.number().optional(),
 
-  // Custody Certificate Details
   assignmentBriefDescription: z.string().optional(),
   assignmentFixedAssetCode: z.string().optional(),
   assignmentInitialCondition: z.string().optional(),
   assignmentMaintenanceObligations: z.string().optional(),
 });
 
-// Inferimos el tipo de TypeScript a partir del esquema de Zod
 export type CreateAssetInput = z.infer<typeof createAssetInputSchema>;
 
-export const createAsset = baseProcedure
+// ¡MAGIA DE ARQUITECTURA! Declaramos el permiso requerido en la misma firma de la ruta.
+export const createAsset = protectedProcedureWithPermission("assets.create")
   .input(createAssetInputSchema)
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input, ctx }) => {
     try {
-      // 1. Autorización (Capa de Transporte)
-      const auth = await requirePermission(input.authToken, "assets.create");
-
-      // 2. Delegación a la Capa de Servicios de Dominio
+      // 1. Delegación a la Capa de Servicios de Dominio
+      // El middleware ya garantizó que ctx.user.id y ctx.companyId existen y tienen permiso.
       const newAsset = await AssetService.createAsset(
         input,
-        auth.companyId,
-        auth.user.id,
+        ctx.companyId,
+        ctx.user.id,
       );
 
-      // 3. Respuesta limpia al cliente
+      // 2. Respuesta limpia al cliente
       return newAsset;
     } catch (error) {
-      // 4. Mapeo de errores de negocio a errores HTTP/tRPC
+      // 3. Mapeo de errores de negocio a errores HTTP/tRPC
       handleTrpcError(error);
     }
   });

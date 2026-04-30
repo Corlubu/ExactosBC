@@ -1,17 +1,15 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-// IMPORTANTE: Importamos tu función real de autenticación
 import { authenticateRequest } from "~/server/utils/auth";
 
 /**
  * 1. DEFINICIÓN DEL CONTEXTO (CONTEXT)
- * Extrae el token de forma universal y valida la identidad contra la BDD.
+ * Extrae el token de forma universal y valida la identidad contra la BDD (Una sola vez por request).
  */
 export const createTRPCContext = async (opts: { req: any; res: any }) => {
   let authHeader: string | null | undefined = null;
 
-  // Extracción universal de Headers (Soporta Vinxi, h3, Node)
   if (opts?.req) {
     if (opts.req.headers instanceof Headers) {
       authHeader = opts.req.headers.get("authorization");
@@ -22,31 +20,21 @@ export const createTRPCContext = async (opts: { req: any; res: any }) => {
     }
   }
 
-  // Limpieza del token (elimina "Bearer " si existe)
   const token = authHeader?.startsWith("Bearer ")
     ? authHeader.split(" ")[1]
     : authHeader;
 
   let user = null;
   let companyId = null;
+  let permissions: string[] = [];
 
-  // Validación real contra la base de datos
   if (token && token.length > 20 && token !== "null" && token !== "undefined") {
     try {
-      // Llamamos a tu función de utilidad
       const authData = await authenticateRequest(token);
-
-      // LOG DE DEPURACIÓN (Míralo en la terminal del backend)
-      console.log("🔍 DEBUG AUTH:", {
-        found: !!authData?.user,
-        userId: authData?.user?.id,
-        companyId: authData?.companyId,
-      });
-
-      // Asignación segura
       if (authData && authData.user) {
         user = authData.user;
         companyId = authData.companyId || authData.user.companyId;
+        permissions = authData.permissions; // Guardamos en memoria los permisos
       }
     } catch (cause) {
       console.error("❌ Fallo crítico en authenticateRequest:", cause);
@@ -58,6 +46,7 @@ export const createTRPCContext = async (opts: { req: any; res: any }) => {
     res: opts.res,
     user,
     companyId,
+    permissions,
   };
 };
 
@@ -79,27 +68,13 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 });
 
 /**
- * 3. MIDDLEWARES DE SEGURIDAD
+ * 3. MIDDLEWARES DE SEGURIDAD BASE
  */
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
-  // Verificación estricta de identidad
-  if (!ctx.user) {
-    console.error(
-      "🚫 ACCESO DENEGADO: Middleware bloqueó la petición porque ctx.user es NULL",
-    );
+  if (!ctx.user || !ctx.companyId) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "Usuario no encontrado",
-    });
-  }
-
-  if (!ctx.companyId) {
-    console.error(
-      "🚫 ACCESO DENEGADO: Middleware bloqueó la petición porque ctx.companyId es NULL",
-    );
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Empresa no identificada",
+      message: "Usuario no encontrado o Empresa no identificada",
     });
   }
 
@@ -107,6 +82,7 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
     ctx: {
       user: ctx.user,
       companyId: ctx.companyId,
+      permissions: ctx.permissions,
     },
   });
 });
@@ -118,3 +94,21 @@ export const createTRPCRouter = t.router;
 export const baseProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 export const createCallerFactory = t.createCallerFactory;
+
+/**
+ * NUEVO: FABRICANTE DE PROCEDIMIENTOS CON PERMISOS
+ * Esto evita repetir la lógica y pegarle a la BD en cada endpoint individual.
+ */
+export const protectedProcedureWithPermission = (
+  requiredPermission: string,
+) => {
+  return protectedProcedure.use(({ ctx, next }) => {
+    if (!ctx.permissions.includes(requiredPermission)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `Acceso denegado. Se requiere el permiso: ${requiredPermission}`,
+      });
+    }
+    return next({ ctx });
+  });
+};

@@ -16,8 +16,7 @@ export async function verifyAuthToken(
 ): Promise<TokenPayload> {
   try {
     const verified = jwt.verify(authToken, env.JWT_SECRET);
-    const parsed = tokenPayloadSchema.parse(verified);
-    return parsed;
+    return tokenPayloadSchema.parse(verified);
   } catch (error) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -26,6 +25,10 @@ export async function verifyAuthToken(
   }
 }
 
+/**
+ * Función principal de autenticación.
+ * Carga el usuario y TODOS sus permisos en una sola consulta estructurada.
+ */
 export async function authenticateRequest(authToken: string) {
   const payload = await verifyAuthToken(authToken);
 
@@ -62,24 +65,9 @@ export async function authenticateRequest(authToken: string) {
   return {
     user,
     companyId: payload.companyId,
+    // Extraemos un arreglo plano de strings con los nombres de los permisos
     permissions: user.role?.permissions.map((rp) => rp.permission.name) ?? [],
   };
-}
-
-export async function requirePermission(
-  authToken: string,
-  requiredPermission: string,
-) {
-  const auth = await authenticateRequest(authToken);
-
-  if (!auth.permissions.includes(requiredPermission)) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `Permission denied: ${requiredPermission} required`,
-    });
-  }
-
-  return auth;
 }
 
 export async function createAuditLog(params: {
@@ -106,40 +94,4 @@ export async function createAuditLog(params: {
       ipAddress: params.ipAddress,
     },
   });
-}
-
-/**
- * NUEVA FUNCIÓN (Enterprise Architecture):
- * Verifica los permisos usando el userId del Contexto (ctx), no el JWT.
- */
-export async function checkContextPermission(
-  userId: number,
-  requiredPermission: string,
-) {
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    include: {
-      role: {
-        include: {
-          permissions: {
-            include: {
-              permission: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const permissions =
-    user?.role?.permissions.map((rp) => rp.permission.name) ?? [];
-
-  if (!permissions.includes(requiredPermission)) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `Permission denied: ${requiredPermission} required`,
-    });
-  }
-
-  return { user, permissions };
 }
