@@ -380,10 +380,16 @@ model AssetComponent {
   cost               Float
   usefulLifeYears    Int?
   residualValue      Float    @default(0)
+  currentValue            Float    // Valor actual del componente
+  accumulatedDepreciation Float    @default(0)
+
   createdAt          DateTime @default(now())
 
   assetId            Int
   asset              Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+// Relación con los cierres mensuales específicos del componente
+  monthlyBalances    MonthlyBalanceClosure[]
 
   @@index([assetId])
 }
@@ -460,15 +466,22 @@ model MonthlyBalanceClosure {
   assetId                 Int
   asset                   Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
+  // --- NUEVA RELACIÓN OPCIONAL ---
+  // Si es null, el cierre es para un activo sin componentes.
+  // Si tiene valor, es el cierre específico de ese componente.
+  componentId             Int?
+  component               AssetComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  // -------------------------------
+
   companyId               Int
   company                 Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  // Un activo solo puede tener un cierre por año/mes
-  @@unique([assetId, year, month])
+  // AJUSTE CRÍTICO: La unicidad ahora incluye al componente
+  @@unique([assetId, componentId, year, month])
 
-  // Índices vitales para reportes de finanzas y dashboards rápidos
   @@index([companyId, year, month])
   @@index([assetId])
+  @@index([componentId])
 }
 
 // ============================================
