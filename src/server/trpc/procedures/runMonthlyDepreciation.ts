@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { protectedProcedure } from "~/server/trpc/main";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { DepreciationService } from "~/server/services/depreciation.service";
 import { handleTrpcError } from "~/server/trpc/error-mapper";
 
-export const runMonthlyDepreciation = protectedProcedure
+export const runMonthlyDepreciation = protectedProcedureWithPermission
   .input(
     z.object({
       year: z.number().int().min(1900).max(2100),

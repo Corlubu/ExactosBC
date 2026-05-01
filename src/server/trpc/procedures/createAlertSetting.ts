@@ -6,25 +6,35 @@ import { db } from "~/server/db";
 export const createAlertSetting = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       name: z.string().min(1),
-      alertType: z.enum(["DEPRECIATION_MILESTONE", "BOOK_VALUE_THRESHOLD", "FULLY_DEPRECIATED"]),
+      alertType: z.enum([
+        "DEPRECIATION_MILESTONE",
+        "BOOK_VALUE_THRESHOLD",
+        "FULLY_DEPRECIATED",
+      ]),
       isEnabled: z.boolean().default(true),
       thresholdPercentage: z.number().min(0).max(100).optional(),
       thresholdAmount: z.number().min(0).optional(),
       assetCategory: z.string().optional(),
       notifyUsers: z.boolean().default(true),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
 
     // Validate that appropriate threshold is provided for the alert type
-    if (input.alertType === "DEPRECIATION_MILESTONE" && !input.thresholdPercentage) {
-      throw new Error("Threshold percentage is required for depreciation milestone alerts");
+    if (
+      input.alertType === "DEPRECIATION_MILESTONE" &&
+      !input.thresholdPercentage
+    ) {
+      throw new Error(
+        "Threshold percentage is required for depreciation milestone alerts",
+      );
     }
     if (input.alertType === "BOOK_VALUE_THRESHOLD" && !input.thresholdAmount) {
-      throw new Error("Threshold amount is required for book value threshold alerts");
+      throw new Error(
+        "Threshold amount is required for book value threshold alerts",
+      );
     }
 
     const alertSetting = await db.alertSetting.create({

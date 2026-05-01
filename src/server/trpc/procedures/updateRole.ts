@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { protectedProcedure } from "~/server/trpc/main";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 import { TRPCError } from "@trpc/server";
 import { createAuditLog } from "~/server/utils/auth";
 
-export const updateRole = protectedProcedure
+export const updateRole = protectedProcedureWithPermission
   .input(
     z.object({
       roleId: z.number(),

@@ -4,11 +4,7 @@ import { authenticateRequest } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
 export const listLocations = baseProcedure
-  .input(
-    z.object({
-      authToken: z.string(),
-    })
-  )
+  .input(z.object({}))
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
 

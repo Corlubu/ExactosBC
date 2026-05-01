@@ -7,9 +7,8 @@ import { requirePermission, createAuditLog } from "~/server/utils/auth";
 export const deleteRole = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
-      roleId: z.number(),
-    })
+      oleId: z.number(),
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.roles");

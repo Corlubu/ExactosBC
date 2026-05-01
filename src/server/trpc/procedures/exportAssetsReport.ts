@@ -43,7 +43,9 @@ function convertToCSV(data: any[]): string {
     asset.status,
     asset.acquisitionCost,
     asset.currentValue,
-    asset.acquisitionDate ? new Date(asset.acquisitionDate).toLocaleDateString() : "",
+    asset.acquisitionDate
+      ? new Date(asset.acquisitionDate).toLocaleDateString()
+      : "",
     asset.serviceDate ? new Date(asset.serviceDate).toLocaleDateString() : "",
     asset.serialNumber || "",
     asset.manufacturer || "",
@@ -51,18 +53,30 @@ function convertToCSV(data: any[]): string {
     asset.supplier || "",
     asset.location?.name || "",
     asset.branch ? `${asset.branch.code} - ${asset.branch.name}` : "",
-    asset.department ? `${asset.department.code} - ${asset.department.name}` : "",
+    asset.department
+      ? `${asset.department.code} - ${asset.department.name}`
+      : "",
     asset.assetType ? `${asset.assetType.code} - ${asset.assetType.name}` : "",
-    asset.assetClass ? `${asset.assetClass.code} - ${asset.assetClass.description}` : "",
+    asset.assetClass
+      ? `${asset.assetClass.code} - ${asset.assetClass.description}`
+      : "",
     asset.assetSubclass?.description || "",
-    asset.currentAssignment ? `${asset.currentAssignment.user.firstName} ${asset.currentAssignment.user.lastName}` : "",
-    asset.currentAssignment ? new Date(asset.currentAssignment.startDate).toLocaleDateString() : "",
+    asset.currentAssignment
+      ? `${asset.currentAssignment.user.firstName} ${asset.currentAssignment.user.lastName}`
+      : "",
+    asset.currentAssignment
+      ? new Date(asset.currentAssignment.startDate).toLocaleDateString()
+      : "",
   ]);
 
   // Escape and format CSV
   const escapeCSV = (value: any): string => {
     const stringValue = String(value);
-    if (stringValue.includes(",") || stringValue.includes('"') || stringValue.includes("\n")) {
+    if (
+      stringValue.includes(",") ||
+      stringValue.includes('"') ||
+      stringValue.includes("\n")
+    ) {
       return `"${stringValue.replace(/"/g, '""')}"`;
     }
     return stringValue;
@@ -79,7 +93,6 @@ function convertToCSV(data: any[]): string {
 export const exportAssetsReport = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       status: z.string().optional(),
       locationId: z.number().optional(),
       branchId: z.number().optional(),
@@ -90,7 +103,7 @@ export const exportAssetsReport = baseProcedure
       startDate: z.string().date().optional(),
       endDate: z.string().date().optional(),
       search: z.string().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "finance.reports");
@@ -109,7 +122,10 @@ export const exportAssetsReport = baseProcedure
         gte?: Date;
         lte?: Date;
       };
-      OR?: Array<{ name: { contains: string; mode: "insensitive" } } | { assetTag: { contains: string; mode: "insensitive" } }>;
+      OR?: Array<
+        | { name: { contains: string; mode: "insensitive" } }
+        | { assetTag: { contains: string; mode: "insensitive" } }
+      >;
     } = {
       companyId: auth.companyId,
     };
@@ -269,7 +285,11 @@ export const exportAssetsReport = baseProcedure
     });
 
     // Generate presigned URL (valid for 1 hour)
-    const presignedUrl = await minioClient.presignedGetObject(bucketName, fileName, 60 * 60);
+    const presignedUrl = await minioClient.presignedGetObject(
+      bucketName,
+      fileName,
+      60 * 60,
+    );
 
     return {
       downloadUrl: presignedUrl,

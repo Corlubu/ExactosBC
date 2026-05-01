@@ -110,36 +110,19 @@ function NewAssetPage() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const locationsQuery = useQuery(
-    trpc.listLocations.queryOptions({
-      authToken: authToken || "",
-    }),
-  );
+  const locationsQuery = useQuery(trpc.listLocations.queryOptions({}));
 
   const usersQuery = useQuery(
     trpc.listUsers.queryOptions({
-      authToken: authToken || "",
       activeOnly: true,
     }),
   );
 
-  const branchesQuery = useQuery(
-    trpc.listBranches.queryOptions({
-      authToken: authToken || "",
-    }),
-  );
+  const branchesQuery = useQuery(trpc.listBranches.queryOptions({}));
 
-  const departmentsQuery = useQuery(
-    trpc.listDepartments.queryOptions({
-      authToken: authToken || "",
-    }),
-  );
+  const departmentsQuery = useQuery(trpc.listDepartments.queryOptions({}));
 
-  const assetTypesQuery = useQuery(
-    trpc.listAssetTypes.queryOptions({
-      authToken: authToken || "",
-    }),
-  );
+  const assetTypesQuery = useQuery(trpc.listAssetTypes.queryOptions({}));
 
   const {
     register,

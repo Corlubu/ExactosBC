@@ -26,46 +26,38 @@ function AssetsListPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [locationFilter, setLocationFilter] = useState<number | undefined>(undefined);
-  const [branchFilter, setBranchFilter] = useState<number | undefined>(undefined);
-  const [departmentFilter, setDepartmentFilter] = useState<number | undefined>(undefined);
-  const [assetTypeFilter, setAssetTypeFilter] = useState<number | undefined>(undefined);
-  const [assignedToFilter, setAssignedToFilter] = useState<number | undefined>(undefined);
-
-  const locationsQuery = useQuery(
-    trpc.listLocations.queryOptions({
-      authToken: authToken || "",
-    })
+  const [locationFilter, setLocationFilter] = useState<number | undefined>(
+    undefined,
+  );
+  const [branchFilter, setBranchFilter] = useState<number | undefined>(
+    undefined,
+  );
+  const [departmentFilter, setDepartmentFilter] = useState<number | undefined>(
+    undefined,
+  );
+  const [assetTypeFilter, setAssetTypeFilter] = useState<number | undefined>(
+    undefined,
+  );
+  const [assignedToFilter, setAssignedToFilter] = useState<number | undefined>(
+    undefined,
   );
 
-  const branchesQuery = useQuery(
-    trpc.listBranches.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const locationsQuery = useQuery(trpc.listLocations.queryOptions({}));
+
+  const branchesQuery = useQuery(trpc.listBranches.queryOptions({}));
 
   const departmentsQuery = useQuery(
     trpc.listDepartments.queryOptions({
-      authToken: authToken || "",
       branchId: branchFilter,
-    })
+    }),
   );
 
-  const assetTypesQuery = useQuery(
-    trpc.listAssetTypes.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const assetTypesQuery = useQuery(trpc.listAssetTypes.queryOptions({}));
 
-  const usersQuery = useQuery(
-    trpc.listUsers.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const usersQuery = useQuery(trpc.listUsers.queryOptions({}));
 
   const assetsQuery = useQuery(
     trpc.listAssets.queryOptions({
-      authToken: authToken || "",
       search: search || undefined,
       status: statusFilter || undefined,
       category: categoryFilter || undefined,
@@ -74,7 +66,7 @@ function AssetsListPage() {
       departmentId: departmentFilter,
       assetTypeId: assetTypeFilter,
       assignedToUserId: assignedToFilter,
-    })
+    }),
   );
 
   const formatCurrency = (value: number) => {
@@ -110,22 +102,26 @@ function AssetsListPage() {
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("assets.title")}</h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">
+            {t("assets.title")}
+          </h1>
           <p className="text-gray-600">{t("assets.subtitle")}</p>
         </div>
         <Link
           to="/app/assets/new"
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
         >
-          <Plus className="w-5 h-5 mr-2" />
+          <Plus className="mr-2 h-5 w-5" />
           {t("assets.addAsset")}
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">{t("assets.filters")}</h2>
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {t("assets.filters")}
+          </h2>
           <button
             onClick={() => {
               setSearch("");
@@ -142,14 +138,14 @@ function AssetsListPage() {
             {t("assets.clearAll")}
           </button>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               {t("assets.search")}
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
@@ -157,23 +153,23 @@ function AssetsListPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("assets.searchPlaceholder")}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="block w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               {t("assets.status")}
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Filter className="h-5 w-5 text-gray-400" />
               </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="block w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">{t("assets.allStatuses")}</option>
                 <option value="ACTIVE">{t("assets.statusActive")}</option>
@@ -186,7 +182,7 @@ function AssetsListPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               {t("assets.category")}
             </label>
             <input
@@ -194,18 +190,22 @@ function AssetsListPage() {
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               placeholder={t("assets.categoryPlaceholder")}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               {t("assets.location")}
             </label>
             <select
               value={locationFilter || ""}
-              onChange={(e) => setLocationFilter(e.target.value ? parseInt(e.target.value) : undefined)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) =>
+                setLocationFilter(
+                  e.target.value ? parseInt(e.target.value) : undefined,
+                )
+              }
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
             >
               <option value="">{t("assets.allLocations")}</option>
               {locationsQuery.data?.locations.map((location) => (
@@ -217,16 +217,18 @@ function AssetsListPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               {t("assets.branch")}
             </label>
             <select
               value={branchFilter || ""}
               onChange={(e) => {
-                setBranchFilter(e.target.value ? parseInt(e.target.value) : undefined);
+                setBranchFilter(
+                  e.target.value ? parseInt(e.target.value) : undefined,
+                );
                 setDepartmentFilter(undefined); // Reset department when branch changes
               }}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
             >
               <option value="">{t("assets.allBranches")}</option>
               {branchesQuery.data?.branches.map((branch) => (
@@ -238,14 +240,20 @@ function AssetsListPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               {t("assets.department")}
             </label>
             <select
               value={departmentFilter || ""}
-              onChange={(e) => setDepartmentFilter(e.target.value ? parseInt(e.target.value) : undefined)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={!branchFilter && departmentsQuery.data?.departments.length === 0}
+              onChange={(e) =>
+                setDepartmentFilter(
+                  e.target.value ? parseInt(e.target.value) : undefined,
+                )
+              }
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+              disabled={
+                !branchFilter && departmentsQuery.data?.departments.length === 0
+              }
             >
               <option value="">{t("assets.allDepartments")}</option>
               {departmentsQuery.data?.departments.map((department) => (
@@ -257,13 +265,17 @@ function AssetsListPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               {t("assets.assetType")}
             </label>
             <select
               value={assetTypeFilter || ""}
-              onChange={(e) => setAssetTypeFilter(e.target.value ? parseInt(e.target.value) : undefined)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) =>
+                setAssetTypeFilter(
+                  e.target.value ? parseInt(e.target.value) : undefined,
+                )
+              }
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
             >
               <option value="">{t("assets.allTypes")}</option>
               {assetTypesQuery.data?.assetTypes.map((type) => (
@@ -275,13 +287,17 @@ function AssetsListPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               {t("assets.assignedTo")}
             </label>
             <select
               value={assignedToFilter || ""}
-              onChange={(e) => setAssignedToFilter(e.target.value ? parseInt(e.target.value) : undefined)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) =>
+                setAssignedToFilter(
+                  e.target.value ? parseInt(e.target.value) : undefined,
+                )
+              }
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
             >
               <option value="">{t("assets.allUsers")}</option>
               {usersQuery.data?.users.map((user) => (
@@ -296,141 +312,151 @@ function AssetsListPage() {
 
       {/* Assets List */}
       {assetsQuery.isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
         </div>
       ) : assetsQuery.isError ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-red-800">{t("assets.failedToLoad")}</p>
         </div>
       ) : assetsQuery.data.assets.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
-          <div className="max-w-md mx-auto">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus className="w-8 h-8 text-gray-400" />
+        <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+          <div className="mx-auto max-w-md">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <Plus className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t("assets.noAssetsFound")}</h3>
-            <p className="text-gray-600 mb-6">
-              {t("assets.noAssetsMessage")}
-            </p>
+            <h3 className="mb-2 text-lg font-semibold text-gray-900">
+              {t("assets.noAssetsFound")}
+            </h3>
+            <p className="mb-6 text-gray-600">{t("assets.noAssetsMessage")}</p>
             <Link
               to="/app/assets/new"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
             >
-              <Plus className="w-5 h-5 mr-2" />
+              <Plus className="mr-2 h-5 w-5" />
               {t("assets.addFirstAsset")}
             </Link>
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     {t("assets.asset")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     {t("assets.category")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     {t("assets.status")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     {t("assets.value")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     {t("assets.location")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     {t("assets.assignedTo")}
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
                     {t("assets.actions")}
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 bg-white">
                 {assetsQuery.data.assets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr
+                    key={asset.id}
+                    className="transition-colors hover:bg-gray-50"
+                  >
+                    <td className="whitespace-nowrap px-6 py-4">
                       <div className="flex items-center">
                         {asset.photoUrl ? (
                           <img
                             src={asset.photoUrl}
                             alt={asset.name}
-                            className="w-10 h-10 rounded-lg object-cover mr-3"
+                            className="mr-3 h-10 w-10 rounded-lg object-cover"
                           />
                         ) : (
-                          <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-                            <Plus className="w-5 h-5 text-gray-400" />
+                          <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200">
+                            <Plus className="h-5 w-5 text-gray-400" />
                           </div>
                         )}
                         <div>
                           <div className="text-sm font-medium text-gray-900">
                             {asset.name}
                           </div>
-                          <div className="text-sm text-gray-500">{asset.assetTag}</div>
+                          <div className="text-sm text-gray-500">
+                            {asset.assetTag}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{asset.category}</div>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {asset.category}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-6 py-4">
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                          asset.status
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(
+                          asset.status,
                         )}`}
                       >
                         {asset.status.replace("_", " ")}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-6 py-4">
                       <div className="text-sm text-gray-900">
                         {formatCurrency(asset.currentValue)}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {t("reports.cost")}: {formatCurrency(asset.acquisitionCost)}
+                        {t("reports.cost")}:{" "}
+                        {formatCurrency(asset.acquisitionCost)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-6 py-4">
                       {asset.location ? (
                         <div className="flex items-center text-sm text-gray-900">
-                          <MapPin className="w-4 h-4 mr-1 text-gray-400" />
+                          <MapPin className="mr-1 h-4 w-4 text-gray-400" />
                           {asset.location.name}
                         </div>
                       ) : (
                         <span className="text-sm text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="whitespace-nowrap px-6 py-4">
                       {asset.currentAssignment ? (
                         <div className="flex items-center text-sm text-gray-900">
-                          <User className="w-4 h-4 mr-1 text-gray-400" />
+                          <User className="mr-1 h-4 w-4 text-gray-400" />
                           {asset.currentAssignment.user.firstName}{" "}
                           {asset.currentAssignment.user.lastName}
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">{t("assets.unassigned")}</span>
+                        <span className="text-sm text-gray-400">
+                          {t("assets.unassigned")}
+                        </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
                         <Link
                           to="/app/assets/$assetId"
                           params={{ assetId: asset.id.toString() }}
                           className="text-blue-600 hover:text-blue-900"
                         >
-                          <Eye className="w-5 h-5" />
+                          <Eye className="h-5 w-5" />
                         </Link>
                         <Link
                           to="/app/assets/$assetId/edit"
                           params={{ assetId: asset.id.toString() }}
                           className="text-gray-600 hover:text-gray-900"
                         >
-                          <Edit className="w-5 h-5" />
+                          <Edit className="h-5 w-5" />
                         </Link>
                       </div>
                     </td>

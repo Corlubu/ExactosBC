@@ -9,9 +9,8 @@ import QRCode from "qrcode";
 export const generateAssetBarcode = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       assetId: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "assets.edit");
@@ -51,7 +50,7 @@ export const generateAssetBarcode = baseProcedure
       qrCodeBuffer.length,
       {
         "Content-Type": "image/png",
-      }
+      },
     );
 
     // Construct the public URL

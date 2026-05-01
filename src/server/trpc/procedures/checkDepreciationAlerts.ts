@@ -6,9 +6,8 @@ import { db } from "~/server/db";
 export const checkDepreciationAlerts = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       assetId: z.number().optional(), // Optional: check only a specific asset
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
@@ -64,7 +63,7 @@ export const checkDepreciationAlerts = baseProcedure
     // Check each asset against each alert setting
     for (const asset of assets) {
       const latestDepreciation = asset.depreciationCalculations[0];
-      
+
       // Skip if no depreciation calculation exists yet
       if (!latestDepreciation) {
         continue;
@@ -82,13 +81,19 @@ export const checkDepreciationAlerts = baseProcedure
         let thresholdValue = 0;
 
         // Check based on alert type
-        if (setting.alertType === "DEPRECIATION_MILESTONE" && setting.thresholdPercentage) {
+        if (
+          setting.alertType === "DEPRECIATION_MILESTONE" &&
+          setting.thresholdPercentage
+        ) {
           // Calculate depreciation percentage
           const totalDepreciable = asset.acquisitionCost - asset.residualValue;
-          const depreciationPercentage = totalDepreciable > 0 
-            ? (latestDepreciation.accumulatedDepreciation / totalDepreciable) * 100 
-            : 0;
-          
+          const depreciationPercentage =
+            totalDepreciable > 0
+              ? (latestDepreciation.accumulatedDepreciation /
+                  totalDepreciable) *
+                100
+              : 0;
+
           currentValue = depreciationPercentage;
           thresholdValue = setting.thresholdPercentage;
 
@@ -96,7 +101,10 @@ export const checkDepreciationAlerts = baseProcedure
             shouldTrigger = true;
             message = `Asset "${asset.name}" has reached ${depreciationPercentage.toFixed(1)}% depreciation (threshold: ${setting.thresholdPercentage}%)`;
           }
-        } else if (setting.alertType === "BOOK_VALUE_THRESHOLD" && setting.thresholdAmount) {
+        } else if (
+          setting.alertType === "BOOK_VALUE_THRESHOLD" &&
+          setting.thresholdAmount
+        ) {
           currentValue = latestDepreciation.bookValue;
           thresholdValue = setting.thresholdAmount;
 

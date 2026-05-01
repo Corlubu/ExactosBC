@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { protectedProcedure } from "~/server/trpc/main";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 import { TRPCError } from "@trpc/server";
 import { createAuditLog } from "~/server/utils/auth";
 
-export const createRole = protectedProcedure
+export const createRole = protectedProcedureWithPermission
   .input(
     z.object({
       name: z.string().min(1, "Role name is required"),

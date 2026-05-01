@@ -42,16 +42,11 @@ function CustodiansPage() {
 
   const usersQuery = useQuery(
     trpc.listUsers.queryOptions({
-      authToken: authToken || "",
       activeOnly: false,
-    })
+    }),
   );
 
-  const currentUserQuery = useQuery(
-    trpc.getCurrentUser.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const currentUserQuery = useQuery(trpc.getCurrentUser.queryOptions({}));
 
   const updateMutation = useMutation(
     trpc.updateUserCustodianDetails.mutationOptions({
@@ -64,7 +59,7 @@ function CustodiansPage() {
       onError: (error) => {
         toast.error(error.message || t("custodians.failedToUpdate"));
       },
-    })
+    }),
   );
 
   const {
@@ -77,7 +72,7 @@ function CustodiansPage() {
   });
 
   const hasAdminPermission = currentUserQuery.data?.permissions.some(
-    (p) => p.name === "admin.users"
+    (p) => p.name === "admin.users",
   );
 
   const filteredUsers = usersQuery.data?.users.filter((user) => {
@@ -106,7 +101,6 @@ function CustodiansPage() {
     if (!selectedUser) return;
 
     updateMutation.mutate({
-      authToken: authToken || "",
       userId: selectedUser.id,
       ...data,
     });
@@ -121,34 +115,34 @@ function CustodiansPage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("custodians.title")}</h1>
-          <p className="text-gray-600">
-            {t("custodians.subtitle")}
-          </p>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">
+            {t("custodians.title")}
+          </h1>
+          <p className="text-gray-600">{t("custodians.subtitle")}</p>
         </div>
 
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
             <input
               type="text"
               placeholder={t("custodians.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:border-transparent focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
         {/* Custodians Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           {usersQuery.isLoading ? (
             <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
               <p className="mt-4 text-gray-600">{t("common.loading")}</p>
             </div>
           ) : filteredUsers && filteredUsers.length > 0 ? (
@@ -156,72 +150,86 @@ function CustodiansPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("custodians.name")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("custodians.email")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.users.position")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.users.identificationNumber")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.users.status")}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("common.actions")}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {filteredUsers.map((user) => (
                     <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-6 py-4">
                         <div className="flex items-center">
-                          <UserCircle className="w-8 h-8 text-gray-400 mr-3" />
+                          <UserCircle className="mr-3 h-8 w-8 text-gray-400" />
                           <div className="text-sm font-medium text-gray-900">
                             {user.firstName} {user.lastName}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{user.email}</div>
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <div className="text-sm text-gray-900">
+                          {user.email}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-6 py-4">
                         <div className="text-sm text-gray-900">
                           {user.position || (
-                            <span className="text-gray-400 italic">Not set</span>
+                            <span className="italic text-gray-400">
+                              Not set
+                            </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-6 py-4">
                         <div className="text-sm text-gray-900">
                           {user.identificationNumber || (
-                            <span className="text-gray-400 italic">Not set</span>
+                            <span className="italic text-gray-400">
+                              Not set
+                            </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-6 py-4">
                         <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                             user.isActive
                               ? "bg-green-100 text-green-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {user.isActive ? t("settings.users.activeUsers").replace(" Users", "") : t("settings.users.inactiveUsers").replace(" Users", "")}
+                          {user.isActive
+                            ? t("settings.users.activeUsers").replace(
+                                " Users",
+                                "",
+                              )
+                            : t("settings.users.inactiveUsers").replace(
+                                " Users",
+                                "",
+                              )}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                         <button
                           onClick={() => handleViewReport(user.id)}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
+                          className="mr-4 text-blue-600 hover:text-blue-900"
                           title={t("custodians.printCertificate")}
                         >
-                          <FileText className="w-5 h-5 inline" />
+                          <FileText className="inline h-5 w-5" />
                         </button>
                         {hasAdminPermission && (
                           <button
@@ -229,7 +237,7 @@ function CustodiansPage() {
                             className="text-gray-600 hover:text-gray-900"
                             title={t("settings.users.editUser")}
                           >
-                            <Edit className="w-5 h-5 inline" />
+                            <Edit className="inline h-5 w-5" />
                           </button>
                         )}
                       </td>
@@ -240,7 +248,9 @@ function CustodiansPage() {
             </div>
           ) : (
             <div className="p-8 text-center text-gray-500">
-              {searchQuery ? t("assets.noAssetsFound") : t("custodians.noCustodiansFound")}
+              {searchQuery
+                ? t("assets.noAssetsFound")
+                : t("custodians.noCustodiansFound")}
             </div>
           )}
         </div>
@@ -279,20 +289,20 @@ function CustodiansPage() {
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900 mb-4"
+                    className="mb-4 text-lg font-medium leading-6 text-gray-900"
                   >
                     {t("custodians.editCustodianDetails")}
                   </Dialog.Title>
 
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("auth.firstName")} *
                       </label>
                       <input
                         type="text"
                         {...register("firstName")}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       />
                       {errors.firstName && (
                         <p className="mt-1 text-sm text-red-600">
@@ -302,13 +312,13 @@ function CustodiansPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("auth.lastName")} *
                       </label>
                       <input
                         type="text"
                         {...register("lastName")}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       />
                       {errors.lastName && (
                         <p className="mt-1 text-sm text-red-600">
@@ -318,43 +328,45 @@ function CustodiansPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("settings.users.position")}
                       </label>
                       <input
                         type="text"
                         {...register("position")}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                         placeholder="e.g., IT Manager, Accountant"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("settings.users.identificationNumber")}
                       </label>
                       <input
                         type="text"
                         {...register("identificationNumber")}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                         placeholder="e.g., EMP-001"
                       />
                     </div>
 
-                    <div className="flex justify-end space-x-3 mt-6">
+                    <div className="mt-6 flex justify-end space-x-3">
                       <button
                         type="button"
                         onClick={() => setIsEditModalOpen(false)}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                        className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                       >
                         {t("common.cancel")}
                       </button>
                       <button
                         type="submit"
                         disabled={updateMutation.isPending}
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
-                        {updateMutation.isPending ? t("common.saving") : t("common.saveChanges")}
+                        {updateMutation.isPending
+                          ? t("common.saving")
+                          : t("common.saveChanges")}
                       </button>
                     </div>
                   </form>

@@ -3,11 +3,7 @@ import { baseProcedure } from "~/server/trpc/main";
 import { authenticateRequest } from "~/server/utils/auth";
 
 export const getCurrentUser = baseProcedure
-  .input(
-    z.object({
-      authToken: z.string(),
-    })
-  )
+  .input(z.object({}))
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
 

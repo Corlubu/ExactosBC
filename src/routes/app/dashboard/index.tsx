@@ -13,16 +13,12 @@ function DashboardRouter() {
   const authToken = useAuthStore((state) => state.authToken);
   const { t } = useLanguage();
 
-  const currentUserQuery = useQuery(
-    trpc.getCurrentUser.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const currentUserQuery = useQuery(trpc.getCurrentUser.queryOptions({}));
 
   if (currentUserQuery.isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -30,7 +26,7 @@ function DashboardRouter() {
   if (currentUserQuery.isError || !currentUserQuery.data) {
     return (
       <div className="p-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-red-800">{t("dashboard.failedToLoad")}</p>
         </div>
       </div>
@@ -48,7 +44,7 @@ function DashboardRouter() {
       permission === "assets.edit" ||
       permission === "assets.delete" ||
       permission === "finance.depreciation" ||
-      permission === "finance.reports"
+      permission === "finance.reports",
   );
 
   // Route to appropriate dashboard

@@ -6,7 +6,6 @@ import { db } from "~/server/db";
 export const listAssetsForReport = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       status: z.string().optional(),
       locationId: z.number().optional(),
       branchId: z.number().optional(),
@@ -17,7 +16,7 @@ export const listAssetsForReport = baseProcedure
       startDate: z.string().date().optional(),
       endDate: z.string().date().optional(),
       search: z.string().optional(),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "finance.reports");
@@ -35,7 +34,10 @@ export const listAssetsForReport = baseProcedure
         gte?: Date;
         lte?: Date;
       };
-      OR?: Array<{ name: { contains: string; mode: "insensitive" } } | { assetTag: { contains: string; mode: "insensitive" } }>;
+      OR?: Array<
+        | { name: { contains: string; mode: "insensitive" } }
+        | { assetTag: { contains: string; mode: "insensitive" } }
+      >;
     } = {
       companyId: auth.companyId,
     };

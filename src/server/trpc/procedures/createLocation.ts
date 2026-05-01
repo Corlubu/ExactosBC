@@ -6,7 +6,6 @@ import { db } from "~/server/db";
 export const createLocation = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       name: z.string().min(1, "Location name is required"),
       type: z.string().min(1, "Location type is required"),
       address: z.string().optional(),
@@ -15,7 +14,7 @@ export const createLocation = baseProcedure
       parentId: z.number().optional(),
       branchId: z.number().optional(),
       departmentId: z.number().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");

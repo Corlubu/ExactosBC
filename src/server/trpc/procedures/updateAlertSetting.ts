@@ -7,7 +7,6 @@ import { TRPCError } from "@trpc/server";
 export const updateAlertSetting = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       id: z.number(),
       name: z.string().min(1).optional(),
       isEnabled: z.boolean().optional(),
@@ -15,7 +14,7 @@ export const updateAlertSetting = baseProcedure
       thresholdAmount: z.number().min(0).optional(),
       assetCategory: z.string().optional().nullable(),
       notifyUsers: z.boolean().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");

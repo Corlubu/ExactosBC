@@ -35,16 +35,10 @@ function AssetSubclassesPage() {
   } | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const assetClassesQuery = useQuery(
-    trpc.listAssetClasses.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const assetClassesQuery = useQuery(trpc.listAssetClasses.queryOptions({}));
 
   const assetSubclassesQuery = useQuery(
-    trpc.listAssetSubclasses.queryOptions({
-      authToken: authToken || "",
-    })
+    trpc.listAssetSubclasses.queryOptions({}),
   );
 
   const {
@@ -65,9 +59,11 @@ function AssetSubclassesPage() {
         setIsFormOpen(false);
       },
       onError: (error) => {
-        toast.error(error.message || t("settings.assetSubclasses.failedToCreate"));
+        toast.error(
+          error.message || t("settings.assetSubclasses.failedToCreate"),
+        );
       },
-    })
+    }),
   );
 
   const updateAssetSubclassMutation = useMutation(
@@ -80,9 +76,11 @@ function AssetSubclassesPage() {
         setIsFormOpen(false);
       },
       onError: (error) => {
-        toast.error(error.message || t("settings.assetSubclasses.failedToUpdate"));
+        toast.error(
+          error.message || t("settings.assetSubclasses.failedToUpdate"),
+        );
       },
-    })
+    }),
   );
 
   const deleteAssetSubclassMutation = useMutation(
@@ -92,21 +90,21 @@ function AssetSubclassesPage() {
         void assetSubclassesQuery.refetch();
       },
       onError: (error) => {
-        toast.error(error.message || t("settings.assetSubclasses.failedToDelete"));
+        toast.error(
+          error.message || t("settings.assetSubclasses.failedToDelete"),
+        );
       },
-    })
+    }),
   );
 
   const onSubmit = (data: AssetSubclassForm) => {
     if (editingAssetSubclass) {
       updateAssetSubclassMutation.mutate({
-        authToken: authToken || "",
         id: editingAssetSubclass.id,
         ...data,
       });
     } else {
       createAssetSubclassMutation.mutate({
-        authToken: authToken || "",
         ...data,
       });
     }
@@ -128,13 +126,8 @@ function AssetSubclassesPage() {
   };
 
   const handleDelete = (assetSubclassId: number) => {
-    if (
-      confirm(
-        t("settings.assetSubclasses.deleteConfirm")
-      )
-    ) {
+    if (confirm(t("settings.assetSubclasses.deleteConfirm"))) {
       deleteAssetSubclassMutation.mutate({
-        authToken: authToken || "",
         id: assetSubclassId,
       });
     }
@@ -148,19 +141,19 @@ function AssetSubclassesPage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => navigate({ to: "/app/settings" })}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
             {t("settings.backToSettings")}
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">
                 {t("settings.assetSubclasses.title")}
               </h1>
               <p className="text-gray-600">
@@ -169,10 +162,10 @@ function AssetSubclassesPage() {
             </div>
             <button
               onClick={() => setIsFormOpen(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
               disabled={!assetClassesQuery.data?.assetClasses.length}
             >
-              <Plus className="w-5 h-5 mr-2" />
+              <Plus className="mr-2 h-5 w-5" />
               {t("settings.assetSubclasses.addSubclass")}
             </button>
           </div>
@@ -185,24 +178,29 @@ function AssetSubclassesPage() {
 
         {/* Form */}
         {isFormOpen && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              {editingAssetSubclass ? t("settings.assetSubclasses.editSubclass") : t("settings.assetSubclasses.newSubclass")}
+          <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              {editingAssetSubclass
+                ? t("settings.assetSubclasses.editSubclass")
+                : t("settings.assetSubclasses.newSubclass")}
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     {t("settings.assetSubclasses.assetClass")} *
                   </label>
                   <select
                     {...register("classId", { valueAsNumber: true })}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">{t("settings.assetSubclasses.selectAssetClass")}</option>
+                    <option value="">
+                      {t("settings.assetSubclasses.selectAssetClass")}
+                    </option>
                     {assetClassesQuery.data?.assetClasses.map((assetClass) => (
                       <option key={assetClass.id} value={assetClass.id}>
-                        {assetClass.assetType.name} → {assetClass.code} - {assetClass.description}
+                        {assetClass.assetType.name} → {assetClass.code} -{" "}
+                        {assetClass.description}
                       </option>
                     ))}
                   </select>
@@ -214,31 +212,37 @@ function AssetSubclassesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     {t("settings.assetSubclasses.subclassDescription")} *
                   </label>
                   <input
                     type="text"
                     {...register("description")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t("settings.assetSubclasses.subclassDescriptionPlaceholder")}
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                    placeholder={t(
+                      "settings.assetSubclasses.subclassDescriptionPlaceholder",
+                    )}
                   />
                   {errors.description && (
                     <p className="mt-1 text-sm text-red-600">
-                      {t("settings.assetSubclasses.subclassDescriptionRequired")}
+                      {t(
+                        "settings.assetSubclasses.subclassDescriptionRequired",
+                      )}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     {t("settings.assetSubclasses.abbreviation")}
                   </label>
                   <input
                     type="text"
                     {...register("abbreviation")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t("settings.assetSubclasses.abbreviationPlaceholder")}
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                    placeholder={t(
+                      "settings.assetSubclasses.abbreviationPlaceholder",
+                    )}
                   />
                   {errors.abbreviation && (
                     <p className="mt-1 text-sm text-red-600">
@@ -252,7 +256,7 @@ function AssetSubclassesPage() {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   {t("common.cancel")}
                 </button>
@@ -262,9 +266,12 @@ function AssetSubclassesPage() {
                     createAssetSubclassMutation.isPending ||
                     updateAssetSubclassMutation.isPending
                   }
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
-                  {editingAssetSubclass ? t("common.update") : t("common.create")} {t("settings.assetSubclasses.title").slice(0, -2)}
+                  {editingAssetSubclass
+                    ? t("common.update")
+                    : t("common.create")}{" "}
+                  {t("settings.assetSubclasses.title").slice(0, -2)}
                 </button>
               </div>
             </form>
@@ -272,19 +279,21 @@ function AssetSubclassesPage() {
         )}
 
         {/* Asset Subclasses List */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           {assetSubclassesQuery.isLoading ? (
             <div className="p-8 text-center text-gray-500">
               {t("settings.assetSubclasses.loading")}
             </div>
           ) : assetSubclassesQuery.data?.assetSubclasses.length === 0 ? (
             <div className="p-8 text-center">
-              <Tag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">{t("settings.assetSubclasses.noSubclasses")}</p>
+              <Tag className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+              <p className="mb-4 text-gray-500">
+                {t("settings.assetSubclasses.noSubclasses")}
+              </p>
               {assetClassesQuery.data?.assetClasses.length ? (
                 <button
                   onClick={() => setIsFormOpen(true)}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="font-medium text-blue-600 hover:text-blue-700"
                 >
                   {t("settings.assetSubclasses.createFirst")}
                 </button>
@@ -299,61 +308,64 @@ function AssetSubclassesPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.assetSubclasses.assetType")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.assetSubclasses.assetClass")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.assetSubclasses.description")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.assetSubclasses.abbreviation")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.assetTypes.assets")}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("common.actions")}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {assetSubclassesQuery.data?.assetSubclasses.map((subclass) => (
-                    <tr key={subclass.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {subclass.class.assetType.code} - {subclass.class.assetType.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {subclass.class.code} - {subclass.class.description}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        {subclass.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {subclass.abbreviation || "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {subclass.assetCount}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => handleEdit(subclass)}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
-                        >
-                          <Pencil className="w-4 h-4 inline" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(subclass.id)}
-                          className="text-red-600 hover:text-red-900"
-                          disabled={subclass.assetCount > 0}
-                        >
-                          <Trash2 className="w-4 h-4 inline" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {assetSubclassesQuery.data?.assetSubclasses.map(
+                    (subclass) => (
+                      <tr key={subclass.id} className="hover:bg-gray-50">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                          {subclass.class.assetType.code} -{" "}
+                          {subclass.class.assetType.name}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                          {subclass.class.code} - {subclass.class.description}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          {subclass.description}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                          {subclass.abbreviation || "-"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                          {subclass.assetCount}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                          <button
+                            onClick={() => handleEdit(subclass)}
+                            className="mr-4 text-blue-600 hover:text-blue-900"
+                          >
+                            <Pencil className="inline h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(subclass.id)}
+                            className="text-red-600 hover:text-red-900"
+                            disabled={subclass.assetCount > 0}
+                          >
+                            <Trash2 className="inline h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ),
+                  )}
                 </tbody>
               </table>
             </div>

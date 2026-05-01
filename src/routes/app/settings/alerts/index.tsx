@@ -27,7 +27,11 @@ export const Route = createFileRoute("/app/settings/alerts/")({
 
 const alertFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  alertType: z.enum(["DEPRECIATION_MILESTONE", "BOOK_VALUE_THRESHOLD", "FULLY_DEPRECIATED"]),
+  alertType: z.enum([
+    "DEPRECIATION_MILESTONE",
+    "BOOK_VALUE_THRESHOLD",
+    "FULLY_DEPRECIATED",
+  ]),
   thresholdPercentage: z.number().min(0).max(100).optional(),
   thresholdAmount: z.number().min(0).optional(),
   assetCategory: z.string().optional(),
@@ -43,21 +47,18 @@ function AlertsSettingsPage() {
   const trpc = useTRPC();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingAlert, setEditingAlert] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"settings" | "active-alerts">("settings");
+  const [activeTab, setActiveTab] = useState<"settings" | "active-alerts">(
+    "settings",
+  );
 
   // Fetch alert settings
-  const alertSettingsQuery = useQuery(
-    trpc.listAlertSettings.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const alertSettingsQuery = useQuery(trpc.listAlertSettings.queryOptions({}));
 
   // Fetch active alerts
   const activeAlertsQuery = useQuery(
     trpc.listAssetAlerts.queryOptions({
-      authToken: authToken || "",
       status: "ACTIVE",
-    })
+    }),
   );
 
   // Mutations
@@ -71,7 +72,7 @@ function AlertsSettingsPage() {
       onError: (error) => {
         toast.error(error.message || t("settings.alerts.failedToCreate"));
       },
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -84,7 +85,7 @@ function AlertsSettingsPage() {
       onError: (error) => {
         toast.error(error.message || t("settings.alerts.failedToUpdate"));
       },
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
@@ -96,14 +97,16 @@ function AlertsSettingsPage() {
       onError: (error) => {
         toast.error(error.message || t("settings.alerts.failedToDelete"));
       },
-    })
+    }),
   );
 
   const checkAlertsMutation = useMutation(
     trpc.checkDepreciationAlerts.mutationOptions({
       onSuccess: (data) => {
         if (data.triggeredAlerts.length > 0) {
-          toast.success(`${data.triggeredAlerts.length} ${t("settings.alerts.alertTriggered")}`);
+          toast.success(
+            `${data.triggeredAlerts.length} ${t("settings.alerts.alertTriggered")}`,
+          );
         } else {
           toast.success(t("settings.alerts.noNewAlerts"));
         }
@@ -112,7 +115,7 @@ function AlertsSettingsPage() {
       onError: (error) => {
         toast.error(error.message || t("settings.alerts.failedToCheck"));
       },
-    })
+    }),
   );
 
   const markAlertMutation = useMutation(
@@ -124,19 +127,16 @@ function AlertsSettingsPage() {
       onError: (error) => {
         toast.error(error.message || t("settings.alerts.failedToAcknowledge"));
       },
-    })
+    }),
   );
 
   const handleCheckAlerts = () => {
-    checkAlertsMutation.mutate({
-      authToken: authToken || "",
-    });
+    checkAlertsMutation.mutate({});
   };
 
   const handleDeleteAlert = (id: number) => {
     if (confirm(t("settings.alerts.deleteConfirm"))) {
       deleteMutation.mutate({
-        authToken: authToken || "",
         id,
       });
     }
@@ -144,7 +144,6 @@ function AlertsSettingsPage() {
 
   const handleToggleEnabled = (id: number, currentValue: boolean) => {
     updateMutation.mutate({
-      authToken: authToken || "",
       id,
       isEnabled: !currentValue,
     });
@@ -152,7 +151,6 @@ function AlertsSettingsPage() {
 
   const handleAcknowledgeAlert = (alertId: number) => {
     markAlertMutation.mutate({
-      authToken: authToken || "",
       alertId,
       status: "ACKNOWLEDGED",
     });
@@ -161,13 +159,13 @@ function AlertsSettingsPage() {
   const getAlertTypeIcon = (type: string) => {
     switch (type) {
       case "DEPRECIATION_MILESTONE":
-        return <TrendingDown className="w-5 h-5" />;
+        return <TrendingDown className="h-5 w-5" />;
       case "BOOK_VALUE_THRESHOLD":
-        return <AlertTriangle className="w-5 h-5" />;
+        return <AlertTriangle className="h-5 w-5" />;
       case "FULLY_DEPRECIATED":
-        return <CheckCircle className="w-5 h-5" />;
+        return <CheckCircle className="h-5 w-5" />;
       default:
-        return <Bell className="w-5 h-5" />;
+        return <Bell className="h-5 w-5" />;
     }
   };
 
@@ -186,12 +184,14 @@ function AlertsSettingsPage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{t("settings.alerts.title")}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {t("settings.alerts.title")}
+              </h1>
               <p className="mt-2 text-gray-600">
                 {t("settings.alerts.subtitle")}
               </p>
@@ -200,16 +200,18 @@ function AlertsSettingsPage() {
               <button
                 onClick={handleCheckAlerts}
                 disabled={checkAlertsMutation.isPending}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
               >
-                <PlayCircle className="w-4 h-4 mr-2" />
-                {checkAlertsMutation.isPending ? t("settings.alerts.checking") : t("settings.alerts.checkNow")}
+                <PlayCircle className="mr-2 h-4 w-4" />
+                {checkAlertsMutation.isPending
+                  ? t("settings.alerts.checking")
+                  : t("settings.alerts.checkNow")}
               </button>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                className="inline-flex items-center rounded-lg border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 {t("settings.alerts.newAlertRule")}
               </button>
             </div>
@@ -217,32 +219,33 @@ function AlertsSettingsPage() {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 mb-6">
+        <div className="mb-6 border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab("settings")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`border-b-2 px-1 py-4 text-sm font-medium ${
                 activeTab === "settings"
                   ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
               }`}
             >
               {t("settings.alerts.alertRules")}
             </button>
             <button
               onClick={() => setActiveTab("active-alerts")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
+              className={`flex items-center border-b-2 px-1 py-4 text-sm font-medium ${
                 activeTab === "active-alerts"
                   ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
               }`}
             >
               {t("settings.alerts.activeAlerts")}
-              {activeAlertsQuery.data && activeAlertsQuery.data.activeCount > 0 && (
-                <span className="ml-2 bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-xs font-semibold">
-                  {activeAlertsQuery.data.activeCount}
-                </span>
-              )}
+              {activeAlertsQuery.data &&
+                activeAlertsQuery.data.activeCount > 0 && (
+                  <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
+                    {activeAlertsQuery.data.activeCount}
+                  </span>
+                )}
             </button>
           </nav>
         </div>
@@ -280,13 +283,11 @@ function AlertsSettingsPage() {
           onSubmit={(data) => {
             if (editingAlert) {
               updateMutation.mutate({
-                authToken: authToken || "",
                 id: editingAlert,
                 ...data,
               });
             } else {
               createMutation.mutate({
-                authToken: authToken || "",
                 ...data,
               });
             }
@@ -328,17 +329,19 @@ function AlertSettingsTab({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (alertSettings.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-        <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">{t("settings.alerts.noRulesConfigured")}</h3>
-        <p className="text-gray-500 mb-6">
+      <div className="rounded-lg border border-gray-200 bg-white py-12 text-center">
+        <Bell className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+        <h3 className="mb-2 text-lg font-medium text-gray-900">
+          {t("settings.alerts.noRulesConfigured")}
+        </h3>
+        <p className="mb-6 text-gray-500">
           {t("settings.alerts.createFirstRule")}
         </p>
       </div>
@@ -346,56 +349,62 @@ function AlertSettingsTab({
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               {t("settings.alerts.alertRules")}
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               {t("settings.alerts.type")}
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               {t("settings.alerts.threshold")}
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               {t("settings.alerts.category")}
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               {t("common.status")}
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
               {t("common.actions")}
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="divide-y divide-gray-200 bg-white">
           {alertSettings.map((setting) => (
             <tr key={setting.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">{setting.name}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center text-sm text-gray-600">
-                  {getAlertTypeIcon(setting.alertType)}
-                  <span className="ml-2">{getAlertTypeName(setting.alertType)}</span>
+              <td className="whitespace-nowrap px-6 py-4">
+                <div className="text-sm font-medium text-gray-900">
+                  {setting.name}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+              <td className="whitespace-nowrap px-6 py-4">
+                <div className="flex items-center text-sm text-gray-600">
+                  {getAlertTypeIcon(setting.alertType)}
+                  <span className="ml-2">
+                    {getAlertTypeName(setting.alertType)}
+                  </span>
+                </div>
+              </td>
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
                 {setting.thresholdPercentage !== null
                   ? `${setting.thresholdPercentage}%`
                   : setting.thresholdAmount !== null
-                  ? `$${setting.thresholdAmount.toFixed(2)}`
-                  : "N/A"}
+                    ? `$${setting.thresholdAmount.toFixed(2)}`
+                    : "N/A"}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
                 {setting.assetCategory || t("settings.alerts.allCategories")}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="whitespace-nowrap px-6 py-4">
                 <Switch
                   checked={setting.isEnabled}
-                  onChange={() => onToggleEnabled(setting.id, setting.isEnabled)}
+                  onChange={() =>
+                    onToggleEnabled(setting.id, setting.isEnabled)
+                  }
                   className={`${
                     setting.isEnabled ? "bg-blue-600" : "bg-gray-200"
                   } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
@@ -407,18 +416,18 @@ function AlertSettingsTab({
                   />
                 </Switch>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                 <button
                   onClick={() => onEdit(setting.id)}
-                  className="text-blue-600 hover:text-blue-900 mr-4"
+                  className="mr-4 text-blue-600 hover:text-blue-900"
                 >
-                  <Edit2 className="w-4 h-4" />
+                  <Edit2 className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => onDelete(setting.id)}
                   className="text-red-600 hover:text-red-900"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </td>
             </tr>
@@ -460,17 +469,21 @@ function ActiveAlertsTab({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (alerts.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-        <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">{t("settings.alerts.noActiveAlerts")}</h3>
-        <p className="text-gray-500">{t("settings.alerts.allWithinThresholds")}</p>
+      <div className="rounded-lg border border-gray-200 bg-white py-12 text-center">
+        <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-400" />
+        <h3 className="mb-2 text-lg font-medium text-gray-900">
+          {t("settings.alerts.noActiveAlerts")}
+        </h3>
+        <p className="text-gray-500">
+          {t("settings.alerts.allWithinThresholds")}
+        </p>
       </div>
     );
   }
@@ -480,24 +493,26 @@ function ActiveAlertsTab({
       {alerts.map((alert) => (
         <div
           key={alert.id}
-          className="bg-white rounded-lg border border-orange-200 p-6 hover:shadow-md transition-shadow"
+          className="rounded-lg border border-orange-200 bg-white p-6 transition-shadow hover:shadow-md"
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center mb-2">
-                <div className="flex items-center text-orange-600 mr-3">
+              <div className="mb-2 flex items-center">
+                <div className="mr-3 flex items-center text-orange-600">
                   {getAlertTypeIcon(alert.alertType)}
                 </div>
-                <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                <span className="rounded bg-orange-50 px-2 py-1 text-xs font-medium text-orange-600">
                   {getAlertTypeName(alert.alertType)}
                 </span>
                 <span className="ml-3 text-xs text-gray-500">
                   {new Date(alert.triggeredAt).toLocaleDateString()}
                 </span>
               </div>
-              <p className="text-gray-900 font-medium mb-2">{alert.message}</p>
+              <p className="mb-2 font-medium text-gray-900">{alert.message}</p>
               <div className="flex items-center text-sm text-gray-600">
-                <span className="font-medium mr-2">{t("settings.alerts.asset")}:</span>
+                <span className="mr-2 font-medium">
+                  {t("settings.alerts.asset")}:
+                </span>
                 <span>
                   {alert.asset.name} ({alert.asset.assetTag})
                 </span>
@@ -507,9 +522,9 @@ function ActiveAlertsTab({
             </div>
             <button
               onClick={() => onAcknowledge(alert.id)}
-              className="ml-4 inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="ml-4 inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              <CheckCircle className="w-4 h-4 mr-2" />
+              <CheckCircle className="mr-2 h-4 w-4" />
               {t("common.acknowledge")}
             </button>
           </div>
@@ -544,7 +559,9 @@ function AlertFormModal({
   isSubmitting: boolean;
 }) {
   const { t } = useLanguage();
-  const editingAlert = editingId ? alertSettings.find((a) => a.id === editingId) : null;
+  const editingAlert = editingId
+    ? alertSettings.find((a) => a.id === editingId)
+    : null;
 
   const {
     register,
@@ -605,21 +622,23 @@ function AlertFormModal({
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between">
                   <Dialog.Title className="text-lg font-medium text-gray-900">
-                    {editingId ? t("settings.alerts.editRule") : t("settings.alerts.newAlertRule")}
+                    {editingId
+                      ? t("settings.alerts.editRule")
+                      : t("settings.alerts.newAlertRule")}
                   </Dialog.Title>
                   <button
                     onClick={handleClose}
                     className="text-gray-400 hover:text-gray-500"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
                       {t("settings.alerts.ruleName")}
                     </label>
                     <input
@@ -629,41 +648,55 @@ function AlertFormModal({
                       placeholder={t("settings.alerts.ruleNamePlaceholder")}
                     />
                     {errors.name && (
-                      <p className="mt-1 text-sm text-red-600">{t("settings.alerts.ruleNameRequired")}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {t("settings.alerts.ruleNameRequired")}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
                       {t("settings.alerts.alertType")}
                     </label>
                     <select
                       {...register("alertType")}
                       className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="DEPRECIATION_MILESTONE">{t("settings.alerts.depreciationMilestone")}</option>
-                      <option value="BOOK_VALUE_THRESHOLD">{t("settings.alerts.bookValueThreshold")}</option>
-                      <option value="FULLY_DEPRECIATED">{t("settings.alerts.fullyDepreciated")}</option>
+                      <option value="DEPRECIATION_MILESTONE">
+                        {t("settings.alerts.depreciationMilestone")}
+                      </option>
+                      <option value="BOOK_VALUE_THRESHOLD">
+                        {t("settings.alerts.bookValueThreshold")}
+                      </option>
+                      <option value="FULLY_DEPRECIATED">
+                        {t("settings.alerts.fullyDepreciated")}
+                      </option>
                     </select>
                     {errors.alertType && (
-                      <p className="mt-1 text-sm text-red-600">{errors.alertType.message}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.alertType.message}
+                      </p>
                     )}
                   </div>
 
                   {alertType === "DEPRECIATION_MILESTONE" && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
                         {t("settings.alerts.depreciationPercentageThreshold")}
                       </label>
                       <div className="relative">
                         <input
                           type="number"
                           step="0.1"
-                          {...register("thresholdPercentage", { valueAsNumber: true })}
+                          {...register("thresholdPercentage", {
+                            valueAsNumber: true,
+                          })}
                           className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="75"
                         />
-                        <span className="absolute right-3 top-2 text-gray-500">%</span>
+                        <span className="absolute right-3 top-2 text-gray-500">
+                          %
+                        </span>
                       </div>
                       <p className="mt-1 text-xs text-gray-500">
                         {t("settings.alerts.depreciationPercentageHelper")}
@@ -678,16 +711,20 @@ function AlertFormModal({
 
                   {alertType === "BOOK_VALUE_THRESHOLD" && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="mb-1 block text-sm font-medium text-gray-700">
                         {t("settings.alerts.bookValueThresholdAmount")}
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-2 text-gray-500">$</span>
+                        <span className="absolute left-3 top-2 text-gray-500">
+                          $
+                        </span>
                         <input
                           type="number"
                           step="0.01"
-                          {...register("thresholdAmount", { valueAsNumber: true })}
-                          className="w-full rounded-lg border border-gray-300 pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          {...register("thresholdAmount", {
+                            valueAsNumber: true,
+                          })}
+                          className="w-full rounded-lg border border-gray-300 py-2 pl-8 pr-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="1000.00"
                         />
                       </div>
@@ -703,7 +740,7 @@ function AlertFormModal({
                   )}
 
                   {alertType === "FULLY_DEPRECIATED" && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                       <p className="text-sm text-blue-800">
                         {t("settings.alerts.fullyDepreciatedHelper")}
                       </p>
@@ -711,14 +748,17 @@ function AlertFormModal({
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("settings.alerts.assetCategory")} ({t("common.optional")})
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                      {t("settings.alerts.assetCategory")} (
+                      {t("common.optional")})
                     </label>
                     <input
                       type="text"
                       {...register("assetCategory")}
                       className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={t("settings.alerts.assetCategoryPlaceholder")}
+                      placeholder={t(
+                        "settings.alerts.assetCategoryPlaceholder",
+                      )}
                     />
                     <p className="mt-1 text-xs text-gray-500">
                       {t("settings.alerts.assetCategoryHelper")}
@@ -732,7 +772,9 @@ function AlertFormModal({
                         {...register("isEnabled")}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <span className="ml-2 text-sm text-gray-700">{t("settings.alerts.enableAlert")}</span>
+                      <span className="ml-2 text-sm text-gray-700">
+                        {t("settings.alerts.enableAlert")}
+                      </span>
                     </label>
                   </div>
 
@@ -743,7 +785,9 @@ function AlertFormModal({
                         {...register("notifyUsers")}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <span className="ml-2 text-sm text-gray-700">{t("settings.alerts.notifyUsers")}</span>
+                      <span className="ml-2 text-sm text-gray-700">
+                        {t("settings.alerts.notifyUsers")}
+                      </span>
                     </label>
                   </div>
 
@@ -751,16 +795,20 @@ function AlertFormModal({
                     <button
                       type="button"
                       onClick={handleClose}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >
                       {t("common.cancel")}
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="flex-1 px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                      className="flex-1 rounded-lg border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                     >
-                      {isSubmitting ? t("common.saving") : editingId ? t("settings.alerts.update") : t("settings.alerts.create")}
+                      {isSubmitting
+                        ? t("common.saving")
+                        : editingId
+                          ? t("settings.alerts.update")
+                          : t("settings.alerts.create")}
                     </button>
                   </div>
                 </form>

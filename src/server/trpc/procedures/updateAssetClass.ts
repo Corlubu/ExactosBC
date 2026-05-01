@@ -6,14 +6,13 @@ import { db } from "~/server/db";
 export const updateAssetClass = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       id: z.number(),
       assetTypeId: z.number(),
       code: z.string().min(1, "Asset class code is required"),
       description: z.string().min(1, "Description is required"),
       accountingAccount: z.string().optional(),
       budgetCode: z.string().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -43,7 +42,10 @@ export const updateAssetClass = baseProcedure
     }
 
     // Check if the new code conflicts with another asset class in the same asset type
-    if (input.code !== existingAssetClass.code || input.assetTypeId !== existingAssetClass.assetTypeId) {
+    if (
+      input.code !== existingAssetClass.code ||
+      input.assetTypeId !== existingAssetClass.assetTypeId
+    ) {
       const codeConflict = await db.assetClass.findFirst({
         where: {
           code: input.code,
@@ -53,7 +55,9 @@ export const updateAssetClass = baseProcedure
       });
 
       if (codeConflict) {
-        throw new Error("An asset class with this code already exists for this asset type");
+        throw new Error(
+          "An asset class with this code already exists for this asset type",
+        );
       }
     }
 

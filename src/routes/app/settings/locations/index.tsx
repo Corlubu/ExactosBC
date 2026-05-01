@@ -45,23 +45,11 @@ function LocationsPage() {
   } | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const locationsQuery = useQuery(
-    trpc.listLocations.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const locationsQuery = useQuery(trpc.listLocations.queryOptions({}));
 
-  const branchesQuery = useQuery(
-    trpc.listBranches.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const branchesQuery = useQuery(trpc.listBranches.queryOptions({}));
 
-  const departmentsQuery = useQuery(
-    trpc.listDepartments.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const departmentsQuery = useQuery(trpc.listDepartments.queryOptions({}));
 
   const {
     register,
@@ -87,7 +75,7 @@ function LocationsPage() {
       onError: (error) => {
         toast.error(error.message || "Failed to create location");
       },
-    })
+    }),
   );
 
   const updateLocationMutation = useMutation(
@@ -102,7 +90,7 @@ function LocationsPage() {
       onError: (error) => {
         toast.error(error.message || "Failed to update location");
       },
-    })
+    }),
   );
 
   const deleteLocationMutation = useMutation(
@@ -114,12 +102,11 @@ function LocationsPage() {
       onError: (error) => {
         toast.error(error.message || "Failed to delete location");
       },
-    })
+    }),
   );
 
   const onSubmit = (data: LocationForm) => {
     const payload = {
-      authToken: authToken || "",
       name: data.name,
       type: data.type,
       address: data.address || undefined,
@@ -166,13 +153,8 @@ function LocationsPage() {
   };
 
   const handleDelete = (locationId: number) => {
-    if (
-      confirm(
-        t("settings.locations.deleteConfirm")
-      )
-    ) {
+    if (confirm(t("settings.locations.deleteConfirm"))) {
       deleteLocationMutation.mutate({
-        authToken: authToken || "",
         id: locationId,
       });
     }
@@ -186,13 +168,15 @@ function LocationsPage() {
 
   // Filter out the current location from parent options when editing
   const availableParentLocations = editingLocation
-    ? locationsQuery.data?.locations.filter((loc) => loc.id !== editingLocation.id)
+    ? locationsQuery.data?.locations.filter(
+        (loc) => loc.id !== editingLocation.id,
+      )
     : locationsQuery.data?.locations;
 
   // Filter departments by selected branch
   const availableDepartments = selectedBranchId
     ? departmentsQuery.data?.departments.filter(
-        (dept) => dept.branchId === selectedBranchId
+        (dept) => dept.branchId === selectedBranchId,
       )
     : departmentsQuery.data?.departments;
 
@@ -210,19 +194,19 @@ function LocationsPage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => navigate({ to: "/app/settings" })}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
             {t("settings.backToSettings")}
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">
                 {t("settings.locations.title")}
               </h1>
               <p className="text-gray-600">
@@ -231,9 +215,9 @@ function LocationsPage() {
             </div>
             <button
               onClick={() => setIsFormOpen(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
             >
-              <Plus className="w-5 h-5 mr-2" />
+              <Plus className="mr-2 h-5 w-5" />
               {t("settings.locations.addLocation")}
             </button>
           </div>
@@ -241,21 +225,25 @@ function LocationsPage() {
 
         {/* Form */}
         {isFormOpen && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              {editingLocation ? t("settings.locations.editLocation") : t("settings.locations.newLocation")}
+          <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              {editingLocation
+                ? t("settings.locations.editLocation")
+                : t("settings.locations.newLocation")}
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     {t("settings.locations.locationName")} *
                   </label>
                   <input
                     type="text"
                     {...register("name")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t("settings.locations.locationNamePlaceholder")}
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                    placeholder={t(
+                      "settings.locations.locationNamePlaceholder",
+                    )}
                   />
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-600">
@@ -265,14 +253,16 @@ function LocationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     {t("settings.locations.locationType")} *
                   </label>
                   <select
                     {...register("type")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">{t("settings.locations.selectType")}</option>
+                    <option value="">
+                      {t("settings.locations.selectType")}
+                    </option>
                     {locationTypes.map((type) => (
                       <option key={type} value={type}>
                         {t(`locationTypes.${type}`)}
@@ -287,13 +277,13 @@ function LocationsPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     {t("settings.locations.address")}
                   </label>
                   <input
                     type="text"
                     {...register("address")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     placeholder={t("settings.locations.addressPlaceholder")}
                   />
                   {errors.address && (
@@ -304,15 +294,16 @@ function LocationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     {t("assets.branch")}
-                    <span className="text-xs text-gray-500 ml-2">
-                      ({t("common.optional")} - link to organizational structure)
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({t("common.optional")} - link to organizational
+                      structure)
                     </span>
                   </label>
                   <select
                     {...register("branchId")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     onChange={(e) => {
                       const value = e.target.value;
                       setValue("branchId", value ? parseInt(value) : null);
@@ -334,15 +325,15 @@ function LocationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     {t("assets.department")}
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="ml-2 text-xs text-gray-500">
                       ({t("common.optional")} - must select branch first)
                     </span>
                   </label>
                   <select
                     {...register("departmentId")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     disabled={!selectedBranchId}
                   >
                     <option value="">{t("common.none")}</option>
@@ -365,14 +356,14 @@ function LocationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     Latitude
                   </label>
                   <input
                     type="number"
                     step="any"
                     {...register("latitude")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., 40.7128"
                   />
                   {errors.latitude && (
@@ -383,14 +374,14 @@ function LocationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     Longitude
                   </label>
                   <input
                     type="number"
                     step="any"
                     {...register("longitude")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., -74.0060"
                   />
                   {errors.longitude && (
@@ -401,15 +392,15 @@ function LocationsPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     Parent Location
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="ml-2 text-xs text-gray-500">
                       ({t("common.optional")} - for hierarchical organization)
                     </span>
                   </label>
                   <select
                     {...register("parentId")}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">{t("common.none")}</option>
                     {availableParentLocations?.map((location) => (
@@ -430,7 +421,7 @@ function LocationsPage() {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   {t("common.cancel")}
                 </button>
@@ -440,9 +431,10 @@ function LocationsPage() {
                     createLocationMutation.isPending ||
                     updateLocationMutation.isPending
                   }
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
-                  {editingLocation ? t("common.update") : t("common.create")} {t("settings.locations.title")}
+                  {editingLocation ? t("common.update") : t("common.create")}{" "}
+                  {t("settings.locations.title")}
                 </button>
               </div>
             </form>
@@ -450,18 +442,20 @@ function LocationsPage() {
         )}
 
         {/* Locations List */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           {locationsQuery.isLoading ? (
             <div className="p-8 text-center text-gray-500">
               {t("common.loading")}
             </div>
           ) : locationsQuery.data?.locations.length === 0 ? (
             <div className="p-8 text-center">
-              <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">{t("settings.locations.noLocations")}</p>
+              <MapPin className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+              <p className="mb-4 text-gray-500">
+                {t("settings.locations.noLocations")}
+              </p>
               <button
                 onClick={() => setIsFormOpen(true)}
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className="font-medium text-blue-600 hover:text-blue-700"
               >
                 {t("settings.branches.createFirst")}
               </button>
@@ -471,63 +465,63 @@ function LocationsPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.departments.name")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.alerts.type")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("settings.locations.address")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       Coordinates
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("common.actions")}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {locationsQuery.data?.locations.map((location) => (
                     <tr key={location.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                         {location.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
                           {t(`locationTypes.${location.type}`)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {location.address || (
-                          <span className="text-gray-400 italic">
+                          <span className="italic text-gray-400">
                             {t("settings.branches.noAddress")}
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         {location.latitude && location.longitude ? (
                           <span className="font-mono text-xs">
                             {location.latitude.toFixed(4)},{" "}
                             {location.longitude.toFixed(4)}
                           </span>
                         ) : (
-                          <span className="text-gray-400 italic">N/A</span>
+                          <span className="italic text-gray-400">N/A</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                         <button
                           onClick={() => handleEdit(location)}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
+                          className="mr-4 text-blue-600 hover:text-blue-900"
                         >
-                          <Pencil className="w-4 h-4 inline" />
+                          <Pencil className="inline h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(location.id)}
                           className="text-red-600 hover:text-red-900"
                         >
-                          <Trash2 className="w-4 h-4 inline" />
+                          <Trash2 className="inline h-4 w-4" />
                         </button>
                       </td>
                     </tr>

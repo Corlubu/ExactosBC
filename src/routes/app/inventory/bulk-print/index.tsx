@@ -21,18 +21,13 @@ function BulkPrintPage() {
 
   const assetsQuery = useQuery(
     trpc.listAssets.queryOptions({
-      authToken: authToken || "",
       search: search || undefined,
       status: statusFilter || undefined,
       limit: 100,
-    })
+    }),
   );
 
-  const companyQuery = useQuery(
-    trpc.getCompanySettings.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const companyQuery = useQuery(trpc.getCompanySettings.queryOptions({}));
 
   const handleToggleAsset = (assetId: number) => {
     setSelectedAssets((prev) => {
@@ -48,7 +43,7 @@ function BulkPrintPage() {
 
   const handleSelectAll = () => {
     if (!assetsQuery.data) return;
-    
+
     if (selectedAssets.size === assetsQuery.data.assets.length) {
       setSelectedAssets(new Set());
     } else {
@@ -63,7 +58,7 @@ function BulkPrintPage() {
     }
 
     const selectedAssetData = assetsQuery.data.assets.filter((asset) =>
-      selectedAssets.has(asset.id)
+      selectedAssets.has(asset.id),
     );
 
     if (selectedAssetData.length === 0) {
@@ -101,21 +96,29 @@ function BulkPrintPage() {
     const barcodesHTML = selectedAssetData
       .map((asset) => {
         const details: string[] = [];
-        
+
         if (labelConfig.showCategory) {
           details.push(`<div class="asset-detail">${asset.category}</div>`);
         }
         if (labelConfig.showLocation && asset.location) {
-          details.push(`<div class="asset-detail">Location: ${asset.location.name}</div>`);
+          details.push(
+            `<div class="asset-detail">Location: ${asset.location.name}</div>`,
+          );
         }
         if (labelConfig.showBranch && asset.branch) {
-          details.push(`<div class="asset-detail">Branch: ${asset.branch.name}</div>`);
+          details.push(
+            `<div class="asset-detail">Branch: ${asset.branch.name}</div>`,
+          );
         }
         if (labelConfig.showDepartment && asset.department) {
-          details.push(`<div class="asset-detail">Department: ${asset.department.name}</div>`);
+          details.push(
+            `<div class="asset-detail">Department: ${asset.department.name}</div>`,
+          );
         }
         if (labelConfig.showAssetType && asset.assetType) {
-          details.push(`<div class="asset-detail">Type: ${asset.assetType.name}</div>`);
+          details.push(
+            `<div class="asset-detail">Type: ${asset.assetType.name}</div>`,
+          );
         }
 
         return `
@@ -123,24 +126,30 @@ function BulkPrintPage() {
           ${
             labelConfig.showCompanyLogo && companyLogoUrl
               ? `<div class="logo-container logo-${labelConfig.logoPosition}"><img src="${companyLogoUrl}" alt="Company Logo" class="company-logo" /></div>`
-              : ''
+              : ""
           }
           ${
             asset.photoUrl
               ? `<img src="${asset.photoUrl}" alt="Asset QR Code" class="barcode-image" />`
               : '<div class="no-qr">No QR Code</div>'
           }
-          ${labelConfig.showAssetTag ? `<div class="asset-tag">${asset.assetTag}</div>` : ''}
-          ${labelConfig.showAssetName ? `<div class="asset-name">${asset.name}</div>` : ''}
-          ${details.length > 0 ? details.join('') : ''}
+          ${labelConfig.showAssetTag ? `<div class="asset-tag">${asset.assetTag}</div>` : ""}
+          ${labelConfig.showAssetName ? `<div class="asset-name">${asset.name}</div>` : ""}
+          ${details.length > 0 ? details.join("") : ""}
         </div>
       `;
       })
       .join("");
 
     // Convert mm to pixels for CSS (1mm ≈ 3.78px at 96dpi)
-    const labelWidthPx = labelConfig.unit === "mm" ? labelConfig.labelWidth * 3.78 : labelConfig.labelWidth * 96;
-    const labelHeightPx = labelConfig.unit === "mm" ? labelConfig.labelHeight * 3.78 : labelConfig.labelHeight * 96;
+    const labelWidthPx =
+      labelConfig.unit === "mm"
+        ? labelConfig.labelWidth * 3.78
+        : labelConfig.labelWidth * 96;
+    const labelHeightPx =
+      labelConfig.unit === "mm"
+        ? labelConfig.labelHeight * 3.78
+        : labelConfig.labelHeight * 96;
     const horizontalSpacingPx = labelConfig.horizontalSpacing * 3.78;
     const verticalSpacingPx = labelConfig.verticalSpacing * 3.78;
 
@@ -169,7 +178,7 @@ function BulkPrintPage() {
                 height: ${labelHeightPx}px;
                 text-align: center;
                 page-break-inside: avoid;
-                ${labelConfig.showBorder ? 'border: 2px solid #000;' : ''}
+                ${labelConfig.showBorder ? "border: 2px solid #000;" : ""}
                 padding: 10px;
                 border-radius: 4px;
                 display: flex;
@@ -248,7 +257,7 @@ function BulkPrintPage() {
                   padding: 10px;
                 }
                 .barcode-container {
-                  ${labelConfig.showBorder ? 'border: 1px solid #000;' : ''}
+                  ${labelConfig.showBorder ? "border: 1px solid #000;" : ""}
                 }
               }
               @page {
@@ -281,12 +290,12 @@ function BulkPrintPage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">
                 {t("inventory.bulkPrintTitle")}
               </h1>
               <p className="text-gray-600">
@@ -296,23 +305,24 @@ function BulkPrintPage() {
             <button
               onClick={handlePrintSelected}
               disabled={selectedAssets.size === 0}
-              className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="flex items-center rounded-lg bg-blue-600 px-6 py-3 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
-              <Printer className="w-5 h-5 mr-2" />
-              {t("inventory.printSelected")} {selectedAssets.size > 0 ? `(${selectedAssets.size})` : ""}
+              <Printer className="mr-2 h-5 w-5" />
+              {t("inventory.printSelected")}{" "}
+              {selectedAssets.size > 0 ? `(${selectedAssets.size})` : ""}
             </button>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 {t("common.search")}
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Search className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
@@ -320,27 +330,29 @@ function BulkPrintPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t("reports.searchPlaceholder")}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="block w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 {t("assets.status")}
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Filter className="h-5 w-5 text-gray-400" />
                 </div>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="block w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">{t("assets.allStatuses")}</option>
                   <option value="ACTIVE">{t("assets.statusActive")}</option>
-                  <option value="IN_REPAIR">{t("assets.statusInRepair")}</option>
+                  <option value="IN_REPAIR">
+                    {t("assets.statusInRepair")}
+                  </option>
                   <option value="DISPOSED">{t("assets.statusDisposed")}</option>
                   <option value="STOLEN">{t("assets.statusStolen")}</option>
                   <option value="LOST">{t("assets.statusLost")}</option>
@@ -352,27 +364,25 @@ function BulkPrintPage() {
 
         {/* Assets List */}
         {assetsQuery.isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="flex h-64 items-center justify-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
           </div>
         ) : assetsQuery.isError ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
             <p className="text-red-800">{t("assets.failedToLoad")}</p>
           </div>
         ) : assetsQuery.data.assets.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
-            <div className="max-w-md mx-auto">
-              <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <div className="mx-auto max-w-md">
+              <QrCode className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+              <h3 className="mb-2 text-lg font-semibold text-gray-900">
                 {t("assets.noAssetsFound")}
               </h3>
-              <p className="text-gray-600">
-                {t("reports.adjustFilters")}
-              </p>
+              <p className="text-gray-600">{t("reports.adjustFilters")}</p>
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -385,29 +395,29 @@ function BulkPrintPage() {
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("assets.asset")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("assets.status")}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       {t("assets.location")}
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">
                       QR Code
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {assetsQuery.data.assets.map((asset) => (
                     <tr
                       key={asset.id}
-                      className={`hover:bg-gray-50 transition-colors ${
+                      className={`transition-colors hover:bg-gray-50 ${
                         selectedAssets.has(asset.id) ? "bg-blue-50" : ""
                       }`}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-6 py-4">
                         <input
                           type="checkbox"
                           checked={selectedAssets.has(asset.id)}
@@ -415,17 +425,17 @@ function BulkPrintPage() {
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-6 py-4">
                         <div className="flex items-center">
                           {asset.photoUrl ? (
                             <img
                               src={asset.photoUrl}
                               alt={asset.name}
-                              className="w-10 h-10 rounded-lg object-cover mr-3"
+                              className="mr-3 h-10 w-10 rounded-lg object-cover"
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-                              <QrCode className="w-5 h-5 text-gray-400" />
+                            <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200">
+                              <QrCode className="h-5 w-5 text-gray-400" />
                             </div>
                           )}
                           <div>
@@ -438,12 +448,12 @@ function BulkPrintPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
                           {asset.status.replace("_", " ")}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-6 py-4">
                         {asset.location ? (
                           <div className="text-sm text-gray-900">
                             {asset.location.name}
@@ -452,11 +462,13 @@ function BulkPrintPage() {
                           <span className="text-sm text-gray-400">-</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="whitespace-nowrap px-6 py-4 text-center">
                         {asset.photoUrl ? (
-                          <Check className="w-5 h-5 text-green-600 mx-auto" />
+                          <Check className="mx-auto h-5 w-5 text-green-600" />
                         ) : (
-                          <span className="text-sm text-gray-400">No Photo</span>
+                          <span className="text-sm text-gray-400">
+                            No Photo
+                          </span>
                         )}
                       </td>
                     </tr>

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { protectedProcedure } from "~/server/trpc/main";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listPermissions = protectedProcedure
+export const listPermissions = protectedProcedureWithPermission
   .input(z.object({}).optional()) // El input puede ir vacío ahora
   .query(async () => {
     const permissions = await db.permission.findMany({

@@ -6,21 +6,22 @@ import { db } from "~/server/db";
 export const createTransferProcess = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       type: z.enum(["TRANSFER", "RECEPTION"]),
       notes: z.string().optional(),
       locationId: z.number().optional(),
-      assets: z.array(
-        z.object({
-          assetId: z.number(),
-          fromLocationId: z.number().optional(),
-          fromUserId: z.number().optional(),
-          toLocationId: z.number().optional(),
-          toUserId: z.number().optional(),
-          notes: z.string().optional(),
-        })
-      ).optional(),
-    })
+      assets: z
+        .array(
+          z.object({
+            assetId: z.number(),
+            fromLocationId: z.number().optional(),
+            fromUserId: z.number().optional(),
+            toLocationId: z.number().optional(),
+            toUserId: z.number().optional(),
+            notes: z.string().optional(),
+          }),
+        )
+        .optional(),
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "inventory.transfer");

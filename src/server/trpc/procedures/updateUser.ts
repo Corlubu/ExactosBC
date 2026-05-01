@@ -8,10 +8,12 @@ import { requirePermission, createAuditLog } from "~/server/utils/auth";
 export const updateUser = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       userId: z.number(),
       email: z.string().email().optional(),
-      password: z.string().min(8, "Password must be at least 8 characters").optional(),
+      password: z
+        .string()
+        .min(8, "Password must be at least 8 characters")
+        .optional(),
       firstName: z.string().min(1, "First name is required").optional(),
       lastName: z.string().min(1, "Last name is required").optional(),
       roleId: z.number().nullable().optional(),
@@ -20,7 +22,7 @@ export const updateUser = baseProcedure
       isActive: z.boolean().optional(),
       branchId: z.number().nullable().optional(),
       departmentId: z.number().nullable().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.users");
@@ -28,7 +30,7 @@ export const updateUser = baseProcedure
     // Get existing user
     const existingUser = await db.user.findUnique({
       where: { id: input.userId },
-      include: { 
+      include: {
         role: true,
         branch: true,
         department: true,
@@ -86,7 +88,8 @@ export const updateUser = baseProcedure
         if (userWithIdNumber) {
           throw new TRPCError({
             code: "CONFLICT",
-            message: "A user with this identification number already exists in your company",
+            message:
+              "A user with this identification number already exists in your company",
           });
         }
       }
@@ -140,7 +143,8 @@ export const updateUser = baseProcedure
       }
 
       // If both branch and department are being set, verify they match
-      const branchIdToCheck = input.branchId !== undefined ? input.branchId : existingUser.branchId;
+      const branchIdToCheck =
+        input.branchId !== undefined ? input.branchId : existingUser.branchId;
       if (branchIdToCheck && department.branchId !== branchIdToCheck) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -168,10 +172,12 @@ export const updateUser = baseProcedure
     if (input.lastName !== undefined) updateData.lastName = input.lastName;
     if (input.roleId !== undefined) updateData.roleId = input.roleId;
     if (input.position !== undefined) updateData.position = input.position;
-    if (input.identificationNumber !== undefined) updateData.identificationNumber = input.identificationNumber;
+    if (input.identificationNumber !== undefined)
+      updateData.identificationNumber = input.identificationNumber;
     if (input.isActive !== undefined) updateData.isActive = input.isActive;
     if (input.branchId !== undefined) updateData.branchId = input.branchId;
-    if (input.departmentId !== undefined) updateData.departmentId = input.departmentId;
+    if (input.departmentId !== undefined)
+      updateData.departmentId = input.departmentId;
 
     // Hash new password if provided
     if (input.password) {
@@ -182,7 +188,7 @@ export const updateUser = baseProcedure
     const updatedUser = await db.user.update({
       where: { id: input.userId },
       data: updateData,
-      include: { 
+      include: {
         role: true,
         branch: true,
         department: true,

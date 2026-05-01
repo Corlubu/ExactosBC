@@ -1,9 +1,9 @@
 // src/server/trpc/procedures/listAssets.ts
 import { z } from "zod";
-import { protectedProcedure } from "~/server/trpc/main";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listAssets = protectedProcedure
+export const listAssets = protectedProcedureWithPermission
   .input(
     z.object({
       // ELIMINADO: authToken: z.string()

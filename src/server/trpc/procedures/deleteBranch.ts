@@ -6,9 +6,8 @@ import { db } from "~/server/db";
 export const deleteBranch = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       id: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -35,11 +34,15 @@ export const deleteBranch = baseProcedure
 
     // Check if branch has departments or assets
     if (existingBranch._count.departments > 0) {
-      throw new Error("Cannot delete branch with existing departments. Please delete or reassign departments first.");
+      throw new Error(
+        "Cannot delete branch with existing departments. Please delete or reassign departments first.",
+      );
     }
 
     if (existingBranch._count.assets > 0) {
-      throw new Error("Cannot delete branch with existing assets. Please delete or reassign assets first.");
+      throw new Error(
+        "Cannot delete branch with existing assets. Please delete or reassign assets first.",
+      );
     }
 
     await db.branch.delete({

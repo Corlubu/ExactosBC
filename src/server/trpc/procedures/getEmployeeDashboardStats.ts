@@ -4,11 +4,7 @@ import { authenticateRequest } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
 export const getEmployeeDashboardStats = baseProcedure
-  .input(
-    z.object({
-      authToken: z.string(),
-    })
-  )
+  .input(z.object({}))
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
 
@@ -35,16 +31,13 @@ export const getEmployeeDashboardStats = baseProcedure
     // Calculate total value of assigned assets
     const totalAssignedValue = assignedAssets.reduce(
       (sum, asset) => sum + asset.currentValue,
-      0
+      0,
     );
 
     // Get recent asset movements involving the user (last 30 days)
     const recentMovements = await db.assetMovement.findMany({
       where: {
-        OR: [
-          { fromUserId: auth.user.id },
-          { toUserId: auth.user.id },
-        ],
+        OR: [{ fromUserId: auth.user.id }, { toUserId: auth.user.id }],
         movementDate: {
           gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
         },

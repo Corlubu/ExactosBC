@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { db } from "~/server/db";
-import { protectedProcedure } from "~/server/trpc/main";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { checkContextPermission } from "~/server/utils/auth";
 
-export const listRoles = protectedProcedure
+export const listRoles = protectedProcedureWithPermission
   .input(
     z
       .object({

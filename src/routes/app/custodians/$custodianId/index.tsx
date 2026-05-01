@@ -17,22 +17,18 @@ function CustodianDetailPage() {
 
   const custodianDataQuery = useQuery(
     trpc.getAssetsByCustodian.queryOptions({
-      authToken: authToken || "",
       custodianId: parseInt(custodianId),
-    })
+    }),
   );
 
   const companySettingsQuery = useQuery(
-    trpc.getCompanySettings.queryOptions({
-      authToken: authToken || "",
-    })
+    trpc.getCompanySettings.queryOptions({}),
   );
 
   const generatePdfMutation = useMutation(
     trpc.generateCustodianCertificatePdf.mutationOptions({
-      authToken: authToken || "",
       custodianId: parseInt(custodianId),
-    })
+    }),
   );
 
   const companyLogo = companySettingsQuery.data?.logoUrl;
@@ -46,10 +42,10 @@ function CustodianDetailPage() {
   const handleDownloadPdf = async () => {
     try {
       const result = await generatePdfMutation.mutateAsync();
-      
+
       // Open the download URL in a new tab to trigger download
       window.open(result.downloadUrl, "_blank");
-      
+
       toast.success("PDF generated successfully!");
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -60,9 +56,9 @@ function CustodianDetailPage() {
   if (custodianDataQuery.isLoading) {
     return (
       <div className="p-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <div className="mx-auto max-w-5xl">
+          <div className="py-12 text-center">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
             <p className="mt-4 text-gray-600">Loading custody report...</p>
           </div>
         </div>
@@ -73,8 +69,8 @@ function CustodianDetailPage() {
   if (custodianDataQuery.isError) {
     return (
       <div className="p-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center py-12">
+        <div className="mx-auto max-w-5xl">
+          <div className="py-12 text-center">
             <p className="text-red-600">Error loading custody report</p>
             <button
               onClick={() => navigate({ to: "/app/custodians" })}
@@ -100,46 +96,47 @@ function CustodianDetailPage() {
           }
         }
       `}</style>
-      <div className="max-w-5xl mx-auto">
+      <div className="mx-auto max-w-5xl">
         {/* Header - Hidden when printing */}
         <div className="mb-8 print:hidden">
           <button
             onClick={() => navigate({ to: "/app/custodians" })}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
             Back to Custodians
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">
                 Custody Certificate
               </h1>
               <p className="text-gray-600">
-                Asset custody report for {custodian.firstName} {custodian.lastName}
+                Asset custody report for {custodian.firstName}{" "}
+                {custodian.lastName}
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={handlePrint}
-                className="flex items-center px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
               >
-                <Printer className="w-5 h-5 mr-2" />
+                <Printer className="mr-2 h-5 w-5" />
                 Print Certificate
               </button>
               <button
                 onClick={handleDownloadPdf}
                 disabled={generatePdfMutation.isPending}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {generatePdfMutation.isPending ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    <div className="mr-2 h-5 w-5 animate-spin rounded-full border-b-2 border-white"></div>
                     Generating...
                   </>
                 ) : (
                   <>
-                    <FileDown className="w-5 h-5 mr-2" />
+                    <FileDown className="mr-2 h-5 w-5" />
                     Download PDF
                   </>
                 )}
@@ -149,18 +146,18 @@ function CustodianDetailPage() {
         </div>
 
         {/* Printable Certificate */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 print:shadow-none print:border-0 relative">
+        <div className="relative rounded-2xl border border-gray-200 bg-white p-8 shadow-sm print:border-0 print:shadow-none">
           {/* Watermark - Only visible in print */}
-          <div 
-            className="hidden print:block fixed inset-0 pointer-events-none z-10 overflow-hidden"
-            style={{ 
+          <div
+            className="pointer-events-none fixed inset-0 z-10 hidden overflow-hidden print:block"
+            style={{
               opacity: 0.05,
             }}
           >
-            <div 
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-8xl font-bold watermark-text"
-              style={{ 
-                transform: 'translate(-50%, -50%) rotate(-45deg)',
+            <div
+              className="watermark-text absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-8xl font-bold"
+              style={{
+                transform: "translate(-50%, -50%) rotate(-45deg)",
                 color: brandColor,
               }}
             >
@@ -169,33 +166,36 @@ function CustodianDetailPage() {
           </div>
 
           {/* Certificate Header */}
-          <div className="text-center mb-8 pb-6 border-b-2" style={{ borderColor: brandColor }}>
+          <div
+            className="mb-8 border-b-2 pb-6 text-center"
+            style={{ borderColor: brandColor }}
+          >
             {companyLogo && (
-              <img 
-                src={companyLogo} 
+              <img
+                src={companyLogo}
                 alt={`${companyName} Logo`}
-                className="h-16 mx-auto mb-4 object-contain"
+                className="mx-auto mb-4 h-16 object-contain"
               />
             )}
-            <div 
-              className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+            <div
+              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
               style={{ backgroundColor: `${brandColor}20` }}
             >
-              <FileText className="w-8 h-8" style={{ color: brandColor }} />
+              <FileText className="h-8 w-8" style={{ color: brandColor }} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="mb-2 text-2xl font-bold text-gray-900">
               CUSTODY CERTIFICATE
             </h2>
             <p className="text-gray-600">Fixed Asset Custody Acknowledgment</p>
-            <p className="text-sm text-gray-500 mt-2">{companyName}</p>
+            <p className="mt-2 text-sm text-gray-500">{companyName}</p>
           </div>
 
           {/* Custodian Information */}
           <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">
               Custodian Information
             </h3>
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+            <div className="grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4">
               <div>
                 <p className="text-sm text-gray-600">Full Name</p>
                 <p className="text-base font-medium text-gray-900">
@@ -225,51 +225,61 @@ function CustodianDetailPage() {
 
           {/* Assets Under Custody */}
           <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">
               Assets Under Custody ({assignments.length})
             </h3>
 
             {assignments.length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <Package className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                <p className="text-gray-600">No assets currently assigned to this custodian</p>
+              <div className="rounded-lg bg-gray-50 py-8 text-center">
+                <Package className="mx-auto mb-2 h-12 w-12 text-gray-400" />
+                <p className="text-gray-600">
+                  No assets currently assigned to this custodian
+                </p>
               </div>
             ) : (
               <div className="space-y-6">
                 {assignments.map((assignment, index) => (
                   <div
                     key={assignment.id}
-                    className="border border-gray-200 rounded-lg p-6 break-inside-avoid"
+                    className="break-inside-avoid rounded-lg border border-gray-200 p-6"
                   >
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="mb-4 flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                        <h4 className="mb-1 text-lg font-semibold text-gray-900">
                           {index + 1}. {assignment.asset.name}
                         </h4>
                         <p className="text-sm text-gray-600">
-                          Asset Tag: <span className="font-medium">{assignment.asset.assetTag}</span>
+                          Asset Tag:{" "}
+                          <span className="font-medium">
+                            {assignment.asset.assetTag}
+                          </span>
                         </p>
                       </div>
-                      <span 
-                        className="px-3 py-1 text-xs font-semibold rounded-full"
-                        style={{ 
+                      <span
+                        className="rounded-full px-3 py-1 text-xs font-semibold"
+                        style={{
                           backgroundColor: `${brandColor}20`,
-                          color: brandColor
+                          color: brandColor,
                         }}
                       >
                         {assignment.asset.status}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                        <p className="text-sm text-gray-600">Fixed Asset Code</p>
+                        <p className="text-sm text-gray-600">
+                          Fixed Asset Code
+                        </p>
                         <p className="text-sm font-medium text-gray-900">
-                          {assignment.fixedAssetCode || assignment.asset.assetTag}
+                          {assignment.fixedAssetCode ||
+                            assignment.asset.assetTag}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Date of Assignment</p>
+                        <p className="text-sm text-gray-600">
+                          Date of Assignment
+                        </p>
                         <p className="text-sm font-medium text-gray-900">
                           {new Date(assignment.startDate).toLocaleDateString()}
                         </p>
@@ -290,21 +300,31 @@ function CustodianDetailPage() {
 
                     {assignment.briefDescription && (
                       <div className="mb-3">
-                        <p className="text-sm text-gray-600 mb-1">Description</p>
-                        <p className="text-sm text-gray-900">{assignment.briefDescription}</p>
+                        <p className="mb-1 text-sm text-gray-600">
+                          Description
+                        </p>
+                        <p className="text-sm text-gray-900">
+                          {assignment.briefDescription}
+                        </p>
                       </div>
                     )}
 
                     {assignment.initialCondition && (
                       <div className="mb-3">
-                        <p className="text-sm text-gray-600 mb-1">Initial Condition</p>
-                        <p className="text-sm text-gray-900">{assignment.initialCondition}</p>
+                        <p className="mb-1 text-sm text-gray-600">
+                          Initial Condition
+                        </p>
+                        <p className="text-sm text-gray-900">
+                          {assignment.initialCondition}
+                        </p>
                       </div>
                     )}
 
                     {assignment.maintenanceObligations && (
                       <div className="mb-3">
-                        <p className="text-sm text-gray-600 mb-1">Maintenance Obligations</p>
+                        <p className="mb-1 text-sm text-gray-600">
+                          Maintenance Obligations
+                        </p>
                         <p className="text-sm text-gray-900">
                           {assignment.maintenanceObligations}
                         </p>
@@ -312,9 +332,10 @@ function CustodianDetailPage() {
                     )}
 
                     {assignment.asset.location && (
-                      <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="mt-3 border-t border-gray-200 pt-3">
                         <p className="text-sm text-gray-600">
-                          Location: <span className="font-medium text-gray-900">
+                          Location:{" "}
+                          <span className="font-medium text-gray-900">
                             {assignment.asset.location.name}
                           </span>
                         </p>
@@ -328,39 +349,56 @@ function CustodianDetailPage() {
 
           {/* Acknowledgment Section */}
           {assignments.length > 0 && (
-            <div className="border-t-2 pt-6 mt-8" style={{ borderColor: brandColor }}>
+            <div
+              className="mt-8 border-t-2 pt-6"
+              style={{ borderColor: brandColor }}
+            >
               <div className="mb-6">
-                <h3 className="text-base font-semibold text-gray-900 mb-3">
+                <h3 className="mb-3 text-base font-semibold text-gray-900">
                   Custodian Acknowledgment
                 </h3>
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  I, <span className="font-semibold">{custodian.firstName} {custodian.lastName}</span>,
-                  acknowledge receipt of the above-listed asset(s) and accept responsibility for their
-                  proper care, maintenance, and security. I understand that I am accountable for these
-                  assets and agree to report any damage, loss, or theft immediately. I will return the
-                  asset(s) in good condition upon request or termination of my assignment.
+                <p className="text-sm leading-relaxed text-gray-700">
+                  I,{" "}
+                  <span className="font-semibold">
+                    {custodian.firstName} {custodian.lastName}
+                  </span>
+                  , acknowledge receipt of the above-listed asset(s) and accept
+                  responsibility for their proper care, maintenance, and
+                  security. I understand that I am accountable for these assets
+                  and agree to report any damage, loss, or theft immediately. I
+                  will return the asset(s) in good condition upon request or
+                  termination of my assignment.
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-8 mt-12">
+              <div className="mt-12 grid grid-cols-2 gap-8">
                 <div>
-                  <div className="border-t-2 pt-2" style={{ borderColor: brandColor }}>
-                    <p className="text-sm font-medium text-gray-900">Custodian Signature</p>
-                    <p className="text-xs text-gray-600 mt-1">
+                  <div
+                    className="border-t-2 pt-2"
+                    style={{ borderColor: brandColor }}
+                  >
+                    <p className="text-sm font-medium text-gray-900">
+                      Custodian Signature
+                    </p>
+                    <p className="mt-1 text-xs text-gray-600">
                       {custodian.firstName} {custodian.lastName}
                     </p>
                   </div>
                 </div>
                 <div>
-                  <div className="border-t-2 pt-2" style={{ borderColor: brandColor }}>
+                  <div
+                    className="border-t-2 pt-2"
+                    style={{ borderColor: brandColor }}
+                  >
                     <p className="text-sm font-medium text-gray-900">Date</p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 pt-8 border-t border-gray-200">
-                <p className="text-xs text-gray-500 text-center">
-                  This document was generated on {new Date().toLocaleDateString()} at{" "}
+              <div className="mt-8 border-t border-gray-200 pt-8">
+                <p className="text-center text-xs text-gray-500">
+                  This document was generated on{" "}
+                  {new Date().toLocaleDateString()} at{" "}
                   {new Date().toLocaleTimeString()}
                 </p>
               </div>

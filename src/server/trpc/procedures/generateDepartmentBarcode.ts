@@ -9,9 +9,8 @@ import QRCode from "qrcode";
 export const generateDepartmentBarcode = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       departmentId: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -57,7 +56,7 @@ export const generateDepartmentBarcode = baseProcedure
       qrCodeBuffer.length,
       {
         "Content-Type": "image/png",
-      }
+      },
     );
 
     // Construct the public URL

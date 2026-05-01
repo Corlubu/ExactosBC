@@ -17,10 +17,9 @@ export function AlertNotificationBell() {
 
   const activeAlertsQuery = useQuery(
     trpc.listAssetAlerts.queryOptions({
-      authToken: authToken || "",
       status: "ACTIVE",
       limit: 5,
-    })
+    }),
   );
 
   const activeCount = activeAlertsQuery.data?.activeCount || 0;
@@ -29,22 +28,22 @@ export function AlertNotificationBell() {
   const getAlertTypeIcon = (type: string) => {
     switch (type) {
       case "DEPRECIATION_MILESTONE":
-        return <TrendingDown className="w-4 h-4" />;
+        return <TrendingDown className="h-4 w-4" />;
       case "BOOK_VALUE_THRESHOLD":
-        return <AlertTriangle className="w-4 h-4" />;
+        return <AlertTriangle className="h-4 w-4" />;
       case "FULLY_DEPRECIATED":
-        return <CheckCircle className="w-4 h-4" />;
+        return <CheckCircle className="h-4 w-4" />;
       default:
-        return <Bell className="w-4 h-4" />;
+        return <Bell className="h-4 w-4" />;
     }
   };
 
   return (
     <Menu as="div" className="relative">
-      <Menu.Button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-        <Bell className="w-5 h-5" />
+      <Menu.Button className="relative rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900">
+        <Bell className="h-5 w-5" />
         {activeCount > 0 && (
-          <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+          <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
             {activeCount > 9 ? "9+" : activeCount}
           </span>
         )}
@@ -59,11 +58,13 @@ export function AlertNotificationBell() {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 mt-2 w-80 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-          <div className="p-4 border-b border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-900">{t("settings.alerts.title")}</h3>
+        <Menu.Items className="absolute right-0 z-50 mt-2 w-80 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+          <div className="border-b border-gray-200 p-4">
+            <h3 className="text-sm font-semibold text-gray-900">
+              {t("settings.alerts.title")}
+            </h3>
             {activeCount > 0 && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="mt-1 text-xs text-gray-500">
                 {activeCount} {t("settings.alerts.activeAlerts").toLowerCase()}
               </p>
             )}
@@ -72,8 +73,10 @@ export function AlertNotificationBell() {
           <div className="max-h-96 overflow-y-auto">
             {recentAlerts.length === 0 ? (
               <div className="p-4 text-center">
-                <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">{t("settings.alerts.activeAlerts")}</p>
+                <CheckCircle className="mx-auto mb-2 h-8 w-8 text-green-400" />
+                <p className="text-sm text-gray-500">
+                  {t("settings.alerts.activeAlerts")}
+                </p>
               </div>
             ) : (
               <div className="py-2">
@@ -82,20 +85,23 @@ export function AlertNotificationBell() {
                     {({ active }) => (
                       <Link
                         to="/app/settings/alerts"
-                        className={`block px-4 py-3 border-b border-gray-100 last:border-b-0 ${
+                        className={`block border-b border-gray-100 px-4 py-3 last:border-b-0 ${
                           active ? "bg-gray-50" : ""
                         }`}
                       >
                         <div className="flex items-start">
-                          <div className="flex-shrink-0 text-orange-600 mt-0.5">
+                          <div className="mt-0.5 flex-shrink-0 text-orange-600">
                             {getAlertTypeIcon(alert.alertType)}
                           </div>
-                          <div className="ml-3 flex-1 min-w-0">
-                            <p className="text-xs font-medium text-gray-900 line-clamp-2">
+                          <div className="ml-3 min-w-0 flex-1">
+                            <p className="line-clamp-2 text-xs font-medium text-gray-900">
                               {alert.message}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {alert.asset.name} • {new Date(alert.triggeredAt).toLocaleDateString(intlLocale)}
+                            <p className="mt-1 text-xs text-gray-500">
+                              {alert.asset.name} •{" "}
+                              {new Date(alert.triggeredAt).toLocaleDateString(
+                                intlLocale,
+                              )}
                             </p>
                           </div>
                         </div>
@@ -107,7 +113,7 @@ export function AlertNotificationBell() {
             )}
           </div>
 
-          <div className="p-3 border-t border-gray-200">
+          <div className="border-t border-gray-200 p-3">
             <Link
               to="/app/settings/alerts"
               className="block w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700"

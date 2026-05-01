@@ -128,7 +128,6 @@ async function processQRCodesInBackground(
 export const bulkImportAssets = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       assets: z
         .array(bulkAssetInputSchema)
         .min(1, "At least one asset is required"),

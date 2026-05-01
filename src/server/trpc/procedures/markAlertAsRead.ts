@@ -7,10 +7,9 @@ import { TRPCError } from "@trpc/server";
 export const markAlertAsRead = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       alertId: z.number(),
       status: z.enum(["ACKNOWLEDGED", "DISMISSED"]),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);

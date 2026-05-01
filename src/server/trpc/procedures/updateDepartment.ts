@@ -6,13 +6,12 @@ import { db } from "~/server/db";
 export const updateDepartment = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       id: z.number(),
       name: z.string().min(1, "Department name is required"),
       code: z.string().min(1, "Department code is required"),
       branchId: z.number(),
       departmentHeadId: z.number().optional().nullable(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -56,7 +55,10 @@ export const updateDepartment = baseProcedure
     }
 
     // Check if the new code conflicts with another department in the same branch
-    if (input.code !== existingDepartment.code || input.branchId !== existingDepartment.branchId) {
+    if (
+      input.code !== existingDepartment.code ||
+      input.branchId !== existingDepartment.branchId
+    ) {
       const codeConflict = await db.department.findFirst({
         where: {
           code: input.code,
@@ -66,7 +68,9 @@ export const updateDepartment = baseProcedure
       });
 
       if (codeConflict) {
-        throw new Error("A department with this code already exists in this branch");
+        throw new Error(
+          "A department with this code already exists in this branch",
+        );
       }
     }
 

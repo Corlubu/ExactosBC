@@ -2,7 +2,18 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/react";
 import { useAuthStore } from "~/stores/auth";
-import { ArrowRightLeft, Plus, Package, MapPin, User, Calendar, CheckCircle, Clock, XCircle, ArrowLeft } from "lucide-react";
+import {
+  ArrowRightLeft,
+  Plus,
+  Package,
+  MapPin,
+  User,
+  Calendar,
+  CheckCircle,
+  Clock,
+  XCircle,
+  ArrowLeft,
+} from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "~/contexts/LanguageContext";
 
@@ -15,39 +26,42 @@ function TransfersListPage() {
   const trpc = useTRPC();
   const authToken = useAuthStore((state) => state.authToken);
   const { t } = useLanguage();
-  
-  const [statusFilter, setStatusFilter] = useState<"IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "ALL">("ALL");
-  const [typeFilter, setTypeFilter] = useState<"TRANSFER" | "RECEPTION" | "ALL">("ALL");
+
+  const [statusFilter, setStatusFilter] = useState<
+    "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "ALL"
+  >("ALL");
+  const [typeFilter, setTypeFilter] = useState<
+    "TRANSFER" | "RECEPTION" | "ALL"
+  >("ALL");
 
   const transfersQuery = useQuery(
     trpc.listTransferProcesses.queryOptions({
-      authToken: authToken || "",
       status: statusFilter === "ALL" ? undefined : statusFilter,
       type: typeFilter === "ALL" ? undefined : typeFilter,
       limit: 50,
-    })
+    }),
   );
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "IN_PROGRESS":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            <Clock className="w-3 h-3 mr-1" />
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+            <Clock className="mr-1 h-3 w-3" />
             {t("inventory.inProgress")}
           </span>
         );
       case "COMPLETED":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            <CheckCircle className="w-3 h-3 mr-1" />
+          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+            <CheckCircle className="mr-1 h-3 w-3" />
             {t("inventory.completed")}
           </span>
         );
       case "CANCELLED":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-            <XCircle className="w-3 h-3 mr-1" />
+          <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+            <XCircle className="mr-1 h-3 w-3" />
             {t("inventory.cancelled")}
           </span>
         );
@@ -58,11 +72,11 @@ function TransfersListPage() {
 
   const getTypeBadge = (type: string) => {
     return type === "TRANSFER" ? (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+      <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
         {t("inventory.transfer")}
       </span>
     ) : (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+      <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
         {t("inventory.reception")}
       </span>
     );
@@ -70,42 +84,46 @@ function TransfersListPage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => navigate({ to: "/app/inventory" })}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
             {t("inventory.backToInventory")}
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("inventory.transfersAndReception")}</h1>
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">
+                {t("inventory.transfersAndReception")}
+              </h1>
               <p className="text-gray-600">{t("inventory.trackMovements")}</p>
             </div>
             <Link
               to="/app/inventory/transfers/new"
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
             >
-              <Plus className="w-5 h-5 mr-2" />
+              <Plus className="mr-2 h-5 w-5" />
               {t("inventory.newTransfer")}
             </Link>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 {t("assets.status")}
               </label>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                onChange={(e) =>
+                  setStatusFilter(e.target.value as typeof statusFilter)
+                }
+                className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-green-500"
               >
                 <option value="ALL">{t("inventory.allStatuses")}</option>
                 <option value="IN_PROGRESS">{t("inventory.inProgress")}</option>
@@ -114,13 +132,15 @@ function TransfersListPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 {t("inventory.transferType")}
               </label>
               <select
                 value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                onChange={(e) =>
+                  setTypeFilter(e.target.value as typeof typeFilter)
+                }
+                className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-green-500"
               >
                 <option value="ALL">{t("inventory.allTypes")}</option>
                 <option value="TRANSFER">{t("inventory.transfer")}</option>
@@ -132,22 +152,26 @@ function TransfersListPage() {
 
         {/* Transfers List */}
         {transfersQuery.isLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-            <p className="mt-2 text-gray-600">{t("inventory.loadingTransfers")}</p>
+          <div className="py-12 text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-green-600"></div>
+            <p className="mt-2 text-gray-600">
+              {t("inventory.loadingTransfers")}
+            </p>
           </div>
         ) : transfersQuery.data?.processes.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
-            <ArrowRightLeft className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t("inventory.noTransfersFound")}</h3>
-            <p className="text-gray-600 mb-6">
+          <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <ArrowRightLeft className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+            <h3 className="mb-2 text-lg font-semibold text-gray-900">
+              {t("inventory.noTransfersFound")}
+            </h3>
+            <p className="mb-6 text-gray-600">
               {t("inventory.createFirstTransfer")}
             </p>
             <Link
               to="/app/inventory/transfers/new"
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              className="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
             >
-              <Plus className="w-5 h-5 mr-2" />
+              <Plus className="mr-2 h-5 w-5" />
               {t("inventory.createTransfer")}
             </Link>
           </div>
@@ -158,17 +182,17 @@ function TransfersListPage() {
                 key={process.id}
                 to="/app/inventory/transfers/$transferId"
                 params={{ transferId: process.id.toString() }}
-                className="block bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-green-300 transition-all"
+                className="block rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-green-300 hover:shadow-md"
               >
-                <div className="flex items-start justify-between mb-4">
+                <div className="mb-4 flex items-start justify-between">
                   <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-                        <ArrowRightLeft className="w-6 h-6 text-white" />
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-green-600">
+                        <ArrowRightLeft className="h-6 w-6 text-white" />
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-center space-x-2 mb-2">
+                      <div className="mb-2 flex items-center space-x-2">
                         <h3 className="text-lg font-semibold text-gray-900">
                           {process.type} #{process.id}
                         </h3>
@@ -176,20 +200,25 @@ function TransfersListPage() {
                         {getStatusBadge(process.status)}
                       </div>
                       {process.notes && (
-                        <p className="text-sm text-gray-600 mb-2">{process.notes}</p>
+                        <p className="mb-2 text-sm text-gray-600">
+                          {process.notes}
+                        </p>
                       )}
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-1" />
+                          <Calendar className="mr-1 h-4 w-4" />
                           {new Date(process.startDate).toLocaleDateString()}
                         </span>
                         <span className="flex items-center">
-                          <Package className="w-4 h-4 mr-1" />
-                          {process.assetCount} {process.assetCount === 1 ? t("inventory.assetSingular") : t("inventory.assetPlural")}
+                          <Package className="mr-1 h-4 w-4" />
+                          {process.assetCount}{" "}
+                          {process.assetCount === 1
+                            ? t("inventory.assetSingular")
+                            : t("inventory.assetPlural")}
                         </span>
                         {process.location && (
                           <span className="flex items-center">
-                            <MapPin className="w-4 h-4 mr-1" />
+                            <MapPin className="mr-1 h-4 w-4" />
                             {process.location.name}
                           </span>
                         )}
@@ -201,27 +230,42 @@ function TransfersListPage() {
                 {/* Movement Preview */}
                 {process.movements.length > 0 && (
                   <div className="border-t border-gray-200 pt-4">
-                    <div className="text-sm text-gray-600 mb-2">{t("inventory.movementSummary")}</div>
+                    <div className="mb-2 text-sm text-gray-600">
+                      {t("inventory.movementSummary")}
+                    </div>
                     <div className="space-y-2">
                       {process.movements.slice(0, 3).map((movement) => (
-                        <div key={movement.id} className="flex items-center text-sm">
-                          <span className="font-medium text-gray-900">{movement.asset.assetTag}</span>
+                        <div
+                          key={movement.id}
+                          className="flex items-center text-sm"
+                        >
+                          <span className="font-medium text-gray-900">
+                            {movement.asset.assetTag}
+                          </span>
                           <span className="mx-2 text-gray-400">→</span>
                           {movement.fromLocation && (
-                            <span className="text-gray-600">{movement.fromLocation.name}</span>
+                            <span className="text-gray-600">
+                              {movement.fromLocation.name}
+                            </span>
                           )}
                           {movement.fromUser && (
                             <span className="text-gray-600">
-                              {movement.fromUser.firstName} {movement.fromUser.lastName}
+                              {movement.fromUser.firstName}{" "}
+                              {movement.fromUser.lastName}
                             </span>
                           )}
-                          <span className="mx-2 text-gray-400">{t("dashboard.employee.to")}</span>
+                          <span className="mx-2 text-gray-400">
+                            {t("dashboard.employee.to")}
+                          </span>
                           {movement.toLocation && (
-                            <span className="text-gray-900 font-medium">{movement.toLocation.name}</span>
+                            <span className="font-medium text-gray-900">
+                              {movement.toLocation.name}
+                            </span>
                           )}
                           {movement.toUser && (
-                            <span className="text-gray-900 font-medium">
-                              {movement.toUser.firstName} {movement.toUser.lastName}
+                            <span className="font-medium text-gray-900">
+                              {movement.toUser.firstName}{" "}
+                              {movement.toUser.lastName}
                             </span>
                           )}
                         </div>

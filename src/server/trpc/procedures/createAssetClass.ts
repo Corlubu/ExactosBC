@@ -1,11 +1,11 @@
 // src/server/trpc/procedures/createAssetClass.ts
 import { z } from "zod";
-import { protectedProcedure } from "~/server/trpc/main"; // Usamos el procedure protegido
+import { protectedProcedureWithPermission } from "~/server/trpc/main"; // Usamos el procedure protegido
 import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 import { TRPCError } from "@trpc/server";
 
-export const createAssetClass = protectedProcedure
+export const createAssetClass = protectedProcedureWithPermission
   .input(
     z.object({
       // ELIMINADO: authToken: z.string()

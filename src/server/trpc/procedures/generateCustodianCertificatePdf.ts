@@ -10,9 +10,8 @@ import { Readable } from "stream";
 export const generateCustodianCertificatePdf = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       custodianId: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
@@ -53,10 +52,13 @@ export const generateCustodianCertificatePdf = baseProcedure
       // Inject auth token into localStorage before navigating
       await page.goto(baseUrl);
       await page.evaluate((token) => {
-        localStorage.setItem("auth-storage", JSON.stringify({
-          state: { authToken: token },
-          version: 0,
-        }));
+        localStorage.setItem(
+          "auth-storage",
+          JSON.stringify({
+            state: { authToken: token },
+            version: 0,
+          }),
+        );
       }, input.authToken);
 
       // Navigate to the custody certificate page
@@ -64,7 +66,9 @@ export const generateCustodianCertificatePdf = baseProcedure
       await page.goto(certificateUrl, { waitUntil: "networkidle" });
 
       // Wait for the certificate content to load
-      await page.waitForSelector('text=CUSTODY CERTIFICATE', { timeout: 10000 });
+      await page.waitForSelector("text=CUSTODY CERTIFICATE", {
+        timeout: 10000,
+      });
 
       // Generate PDF with proper formatting
       const pdfBuffer = await page.pdf({
@@ -93,14 +97,14 @@ export const generateCustodianCertificatePdf = baseProcedure
         pdfBuffer.length,
         {
           "Content-Type": "application/pdf",
-        }
+        },
       );
 
       // Generate a presigned URL valid for 1 hour
       const downloadUrl = await minioClient.presignedGetObject(
         bucketName,
         filename,
-        24 * 60 * 60 // 24 hours
+        24 * 60 * 60, // 24 hours
       );
 
       return {

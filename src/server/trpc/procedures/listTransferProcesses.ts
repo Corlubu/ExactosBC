@@ -6,12 +6,11 @@ import { db } from "~/server/db";
 export const listTransferProcesses = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       cursor: z.number().optional(),
       limit: z.number().min(1).max(100).default(50),
       status: z.enum(["IN_PROGRESS", "COMPLETED", "CANCELLED"]).optional(),
       type: z.enum(["TRANSFER", "RECEPTION"]).optional(),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);

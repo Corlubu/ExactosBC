@@ -6,9 +6,8 @@ import { db } from "~/server/db";
 export const deleteDepartment = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       id: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -34,7 +33,9 @@ export const deleteDepartment = baseProcedure
 
     // Check if department has assets
     if (existingDepartment._count.assets > 0) {
-      throw new Error("Cannot delete department with existing assets. Please delete or reassign assets first.");
+      throw new Error(
+        "Cannot delete department with existing assets. Please delete or reassign assets first.",
+      );
     }
 
     await db.department.delete({

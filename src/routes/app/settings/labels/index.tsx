@@ -19,15 +19,15 @@ const labelConfigSchema = z.object({
   labelWidth: z.number().min(20).max(200),
   labelHeight: z.number().min(20).max(200),
   unit: z.enum(["mm", "inches"]),
-  
+
   // Layout
   columns: z.number().min(1).max(6),
   horizontalSpacing: z.number().min(0).max(50),
   verticalSpacing: z.number().min(0).max(50),
-  
+
   // Logo Position
   logoPosition: z.enum(["top-left", "top-center", "top-right"]),
-  
+
   // Display Fields
   showCompanyLogo: z.boolean(),
   showAssetTag: z.boolean(),
@@ -37,13 +37,13 @@ const labelConfigSchema = z.object({
   showBranch: z.boolean(),
   showDepartment: z.boolean(),
   showAssetType: z.boolean(),
-  
+
   // Styling
   qrCodeSize: z.number().min(50).max(300),
   assetTagFontSize: z.number().min(8).max(32),
   assetNameFontSize: z.number().min(8).max(24),
   detailsFontSize: z.number().min(6).max(18),
-  
+
   // Border
   showBorder: z.boolean(),
 });
@@ -81,11 +81,7 @@ function LabelSettingsPage() {
   const [showPreview, setShowPreview] = useState(false);
 
   // Fetch current company settings
-  const companyQuery = useQuery(
-    trpc.getCompanySettings.queryOptions({
-      authToken: authToken || "",
-    })
-  );
+  const companyQuery = useQuery(trpc.getCompanySettings.queryOptions({}));
 
   // Update mutation
   const updateMutation = useMutation(
@@ -97,7 +93,7 @@ function LabelSettingsPage() {
       onError: (error) => {
         toast.error(error.message || t("settings.labels.failedToUpdate"));
       },
-    })
+    }),
   );
 
   const currentConfig = companyQuery.data?.barcodeLabelConfig || defaultConfig;
@@ -117,7 +113,6 @@ function LabelSettingsPage() {
     if (!companyQuery.data) return;
 
     updateMutation.mutate({
-      authToken: authToken || "",
       name: companyQuery.data.name,
       barcodeLabelConfig: data,
     });
@@ -132,8 +127,8 @@ function LabelSettingsPage() {
 
   if (companyQuery.isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -141,12 +136,12 @@ function LabelSettingsPage() {
   if (companyQuery.isError) {
     return (
       <div className="p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+        <div className="mx-auto max-w-6xl">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
             <p className="text-red-800">{t("settings.labels.failedToLoad")}</p>
             <button
               onClick={() => companyQuery.refetch()}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
             >
               {t("settings.labels.retry")}
             </button>
@@ -158,99 +153,111 @@ function LabelSettingsPage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => navigate({ to: "/app/settings" })}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
             {t("settings.backToSettings")}
           </button>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl mr-4">
-                <Tag className="w-6 h-6 text-white" />
+              <div className="mr-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-purple-600">
+                <Tag className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{t("settings.labels.title")}</h1>
-                <p className="text-gray-600 mt-1">
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {t("settings.labels.title")}
+                </h1>
+                <p className="mt-1 text-gray-600">
                   {t("settings.labels.subtitle")}
                 </p>
               </div>
             </div>
             <button
               onClick={() => setShowPreview(!showPreview)}
-              className="flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center rounded-lg border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
             >
-              <Eye className="w-4 h-4 mr-2" />
-              {showPreview ? t("settings.labels.hidePreview") : t("settings.labels.showPreview")}
+              <Eye className="mr-2 h-4 w-4" />
+              {showPreview
+                ? t("settings.labels.hidePreview")
+                : t("settings.labels.showPreview")}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Configuration Form */}
           <div className="space-y-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Label Dimensions */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-semibold text-gray-900">
                   {t("settings.labels.labelDimensions")}
                 </h2>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("settings.labels.width")}
                       </label>
                       <input
                         type="number"
                         {...register("labelWidth", { valueAsNumber: true })}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       />
                       {errors.labelWidth && (
-                        <p className="mt-1 text-sm text-red-600">{errors.labelWidth.message}</p>
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.labelWidth.message}
+                        </p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("settings.labels.height")}
                       </label>
                       <input
                         type="number"
                         {...register("labelHeight", { valueAsNumber: true })}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       />
                       {errors.labelHeight && (
-                        <p className="mt-1 text-sm text-red-600">{errors.labelHeight.message}</p>
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.labelHeight.message}
+                        </p>
                       )}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("settings.labels.unit")}
                     </label>
                     <select
                       {...register("unit")}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="mm">{t("settings.labels.millimeters")}</option>
-                      <option value="inches">{t("settings.labels.inches")}</option>
+                      <option value="mm">
+                        {t("settings.labels.millimeters")}
+                      </option>
+                      <option value="inches">
+                        {t("settings.labels.inches")}
+                      </option>
                     </select>
                   </div>
                 </div>
               </div>
 
               {/* Layout Configuration */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-semibold text-gray-900">
                   {t("settings.labels.layoutConfiguration")}
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("settings.labels.columnsPerPage")}
                     </label>
                     <input
@@ -258,31 +265,37 @@ function LabelSettingsPage() {
                       {...register("columns", { valueAsNumber: true })}
                       min="1"
                       max="6"
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     />
                     {errors.columns && (
-                      <p className="mt-1 text-sm text-red-600">{errors.columns.message}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.columns.message}
+                      </p>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("settings.labels.horizontalSpacing")}
                       </label>
                       <input
                         type="number"
-                        {...register("horizontalSpacing", { valueAsNumber: true })}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        {...register("horizontalSpacing", {
+                          valueAsNumber: true,
+                        })}
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         {t("settings.labels.verticalSpacing")}
                       </label>
                       <input
                         type="number"
-                        {...register("verticalSpacing", { valueAsNumber: true })}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        {...register("verticalSpacing", {
+                          valueAsNumber: true,
+                        })}
+                        className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -290,34 +303,37 @@ function LabelSettingsPage() {
               </div>
 
               {/* Display Fields */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-semibold text-gray-900">
                   {t("settings.labels.displayFields")}
                 </h2>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="mb-4 text-sm text-gray-600">
                   {t("settings.labels.displayFieldsHelper")}
                 </p>
-                
+
                 {/* Logo Position */}
-                <div className="mb-6 pb-6 border-b border-gray-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                <div className="mb-6 border-b border-gray-200 pb-6">
+                  <label className="mb-3 block text-sm font-medium text-gray-700">
                     {t("settings.labels.companyLogoPosition")}
                   </label>
                   <div className="flex space-x-4">
                     {[
                       { value: "top-left", label: t("settings.labels.left") },
-                      { value: "top-center", label: t("settings.labels.center") },
+                      {
+                        value: "top-center",
+                        label: t("settings.labels.center"),
+                      },
                       { value: "top-right", label: t("settings.labels.right") },
                     ].map((option) => (
                       <label
                         key={option.value}
-                        className="flex items-center px-4 py-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 border-2 border-transparent has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"
+                        className="flex cursor-pointer items-center rounded-lg border-2 border-transparent bg-gray-50 px-4 py-2 hover:bg-gray-100 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"
                       >
                         <input
                           type="radio"
                           {...register("logoPosition")}
                           value={option.value}
-                          className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                          className="mr-2 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                         <span className="text-sm font-medium text-gray-700">
                           {option.label}
@@ -326,23 +342,50 @@ function LabelSettingsPage() {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="space-y-3">
                   {[
-                    { key: "showCompanyLogo", label: t("settings.labels.includeCompanyLogo") },
-                    { key: "showAssetTag", label: t("settings.labels.includeAssetTag") },
-                    { key: "showAssetName", label: t("settings.labels.includeAssetName") },
-                    { key: "showCategory", label: t("settings.labels.includeCategory") },
-                    { key: "showLocation", label: t("settings.labels.includeLocation") },
-                    { key: "showBranch", label: t("settings.labels.includeBranch") },
-                    { key: "showDepartment", label: t("settings.labels.includeDepartment") },
-                    { key: "showAssetType", label: t("settings.labels.includeAssetType") },
+                    {
+                      key: "showCompanyLogo",
+                      label: t("settings.labels.includeCompanyLogo"),
+                    },
+                    {
+                      key: "showAssetTag",
+                      label: t("settings.labels.includeAssetTag"),
+                    },
+                    {
+                      key: "showAssetName",
+                      label: t("settings.labels.includeAssetName"),
+                    },
+                    {
+                      key: "showCategory",
+                      label: t("settings.labels.includeCategory"),
+                    },
+                    {
+                      key: "showLocation",
+                      label: t("settings.labels.includeLocation"),
+                    },
+                    {
+                      key: "showBranch",
+                      label: t("settings.labels.includeBranch"),
+                    },
+                    {
+                      key: "showDepartment",
+                      label: t("settings.labels.includeDepartment"),
+                    },
+                    {
+                      key: "showAssetType",
+                      label: t("settings.labels.includeAssetType"),
+                    },
                   ].map((field) => (
-                    <label key={field.key} className="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+                    <label
+                      key={field.key}
+                      className="flex cursor-pointer items-center rounded-lg bg-gray-50 p-3 hover:bg-gray-100"
+                    >
                       <input
                         type="checkbox"
                         {...register(field.key as keyof LabelConfigForm)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
+                        className="mr-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="text-sm font-medium text-gray-700">
                         {field.label}
@@ -353,59 +396,63 @@ function LabelSettingsPage() {
               </div>
 
               {/* Styling */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-semibold text-gray-900">
                   {t("settings.labels.styling")}
                 </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("settings.labels.qrCodeSize")}
                     </label>
                     <input
                       type="number"
                       {...register("qrCodeSize", { valueAsNumber: true })}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     />
                     {errors.qrCodeSize && (
-                      <p className="mt-1 text-sm text-red-600">{errors.qrCodeSize.message}</p>
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.qrCodeSize.message}
+                      </p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("settings.labels.assetTagFontSize")}
                     </label>
                     <input
                       type="number"
                       {...register("assetTagFontSize", { valueAsNumber: true })}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("settings.labels.assetNameFontSize")}
                     </label>
                     <input
                       type="number"
-                      {...register("assetNameFontSize", { valueAsNumber: true })}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      {...register("assetNameFontSize", {
+                        valueAsNumber: true,
+                      })}
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       {t("settings.labels.detailsFontSize")}
                     </label>
                     <input
                       type="number"
                       {...register("detailsFontSize", { valueAsNumber: true })}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  <label className="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+                  <label className="flex cursor-pointer items-center rounded-lg bg-gray-50 p-3 hover:bg-gray-100">
                     <input
                       type="checkbox"
                       {...register("showBorder")}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-3"
+                      className="mr-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-sm font-medium text-gray-700">
                       {t("settings.labels.showBorder")}
@@ -420,17 +467,19 @@ function LabelSettingsPage() {
                   type="button"
                   onClick={handleCancel}
                   disabled={!isDirty || updateMutation.isPending}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={!isDirty || updateMutation.isPending}
-                  className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  {updateMutation.isPending ? t("common.saving") : t("common.saveChanges")}
+                  <Save className="mr-2 h-4 w-4" />
+                  {updateMutation.isPending
+                    ? t("common.saving")
+                    : t("common.saveChanges")}
                 </button>
               </div>
             </form>
@@ -439,25 +488,30 @@ function LabelSettingsPage() {
           {/* Live Preview */}
           {showPreview && (
             <div className="lg:sticky lg:top-8 lg:self-start">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-semibold text-gray-900">
                   {t("settings.labels.labelPreview")}
                 </h2>
-                <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-center min-h-[400px]">
+                <div className="flex min-h-[400px] items-center justify-center rounded-lg bg-gray-50 p-4">
                   <div
-                    className={`bg-white ${formValues.showBorder ? 'border-2 border-gray-300' : ''} rounded-lg p-4 text-center`}
+                    className={`bg-white ${formValues.showBorder ? "border-2 border-gray-300" : ""} rounded-lg p-4 text-center`}
                     style={{
                       width: `${formValues.labelWidth * 3.78}px`, // Convert mm to px (1mm ≈ 3.78px at 96dpi)
-                      maxWidth: '100%',
+                      maxWidth: "100%",
                     }}
                   >
                     {/* Company Logo */}
                     {formValues.showCompanyLogo && (
-                      <div 
+                      <div
                         className="mb-3"
                         style={{
-                          display: 'flex',
-                          justifyContent: formValues.logoPosition === 'top-left' ? 'flex-start' : formValues.logoPosition === 'top-right' ? 'flex-end' : 'center',
+                          display: "flex",
+                          justifyContent:
+                            formValues.logoPosition === "top-left"
+                              ? "flex-start"
+                              : formValues.logoPosition === "top-right"
+                                ? "flex-end"
+                                : "center",
                         }}
                       >
                         {companyQuery.data?.logoUrl ? (
@@ -467,8 +521,13 @@ function LabelSettingsPage() {
                             className="h-8 object-contain"
                           />
                         ) : (
-                          <div className="h-8 bg-gray-200 rounded flex items-center justify-center" style={{ maxWidth: '120px' }}>
-                            <span className="text-gray-500 text-xs">{t("settings.labels.logo")}</span>
+                          <div
+                            className="flex h-8 items-center justify-center rounded bg-gray-200"
+                            style={{ maxWidth: "120px" }}
+                          >
+                            <span className="text-xs text-gray-500">
+                              {t("settings.labels.logo")}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -476,20 +535,22 @@ function LabelSettingsPage() {
 
                     {/* QR Code Placeholder */}
                     <div
-                      className="bg-gray-200 mx-auto mb-3 flex items-center justify-center"
+                      className="mx-auto mb-3 flex items-center justify-center bg-gray-200"
                       style={{
                         width: `${formValues.qrCodeSize}px`,
                         height: `${formValues.qrCodeSize}px`,
-                        maxWidth: '100%',
+                        maxWidth: "100%",
                       }}
                     >
-                      <span className="text-gray-500 text-xs">{t("settings.labels.qrCode")}</span>
+                      <span className="text-xs text-gray-500">
+                        {t("settings.labels.qrCode")}
+                      </span>
                     </div>
 
                     {/* Asset Tag */}
                     {formValues.showAssetTag && (
                       <div
-                        className="font-bold text-gray-900 mb-1"
+                        className="mb-1 font-bold text-gray-900"
                         style={{ fontSize: `${formValues.assetTagFontSize}px` }}
                       >
                         AST-001
@@ -499,8 +560,10 @@ function LabelSettingsPage() {
                     {/* Asset Name */}
                     {formValues.showAssetName && (
                       <div
-                        className="text-gray-700 mb-2"
-                        style={{ fontSize: `${formValues.assetNameFontSize}px` }}
+                        className="mb-2 text-gray-700"
+                        style={{
+                          fontSize: `${formValues.assetNameFontSize}px`,
+                        }}
                       >
                         {t("settings.labels.sampleAsset")}
                       </div>
@@ -511,7 +574,9 @@ function LabelSettingsPage() {
                       {formValues.showCategory && (
                         <div
                           className="text-gray-600"
-                          style={{ fontSize: `${formValues.detailsFontSize}px` }}
+                          style={{
+                            fontSize: `${formValues.detailsFontSize}px`,
+                          }}
                         >
                           Category: Equipment
                         </div>
@@ -519,7 +584,9 @@ function LabelSettingsPage() {
                       {formValues.showLocation && (
                         <div
                           className="text-gray-600"
-                          style={{ fontSize: `${formValues.detailsFontSize}px` }}
+                          style={{
+                            fontSize: `${formValues.detailsFontSize}px`,
+                          }}
                         >
                           Location: Warehouse A
                         </div>
@@ -527,7 +594,9 @@ function LabelSettingsPage() {
                       {formValues.showBranch && (
                         <div
                           className="text-gray-600"
-                          style={{ fontSize: `${formValues.detailsFontSize}px` }}
+                          style={{
+                            fontSize: `${formValues.detailsFontSize}px`,
+                          }}
                         >
                           Branch: Main Office
                         </div>
@@ -535,7 +604,9 @@ function LabelSettingsPage() {
                       {formValues.showDepartment && (
                         <div
                           className="text-gray-600"
-                          style={{ fontSize: `${formValues.detailsFontSize}px` }}
+                          style={{
+                            fontSize: `${formValues.detailsFontSize}px`,
+                          }}
                         >
                           Department: IT
                         </div>
@@ -543,7 +614,9 @@ function LabelSettingsPage() {
                       {formValues.showAssetType && (
                         <div
                           className="text-gray-600"
-                          style={{ fontSize: `${formValues.detailsFontSize}px` }}
+                          style={{
+                            fontSize: `${formValues.detailsFontSize}px`,
+                          }}
                         >
                           Type: Computer
                         </div>
@@ -551,7 +624,7 @@ function LabelSettingsPage() {
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-4 text-center">
+                <p className="mt-4 text-center text-xs text-gray-500">
                   {t("settings.labels.previewDisclaimer")}
                 </p>
               </div>

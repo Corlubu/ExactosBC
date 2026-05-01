@@ -7,9 +7,8 @@ import { TRPCError } from "@trpc/server";
 export const deleteAlertSetting = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       id: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");

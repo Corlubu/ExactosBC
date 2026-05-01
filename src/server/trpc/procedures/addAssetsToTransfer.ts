@@ -7,7 +7,6 @@ import { db } from "~/server/db";
 export const addAssetsToTransfer = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       processId: z.number(),
       assets: z.array(
         z.object({
@@ -17,9 +16,9 @@ export const addAssetsToTransfer = baseProcedure
           toLocationId: z.number().optional(),
           toUserId: z.number().optional(),
           notes: z.string().optional(),
-        })
+        }),
       ),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "inventory.transfer");

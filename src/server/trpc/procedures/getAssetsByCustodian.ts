@@ -6,9 +6,8 @@ import { db } from "~/server/db";
 export const getAssetsByCustodian = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       custodianId: z.number(),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);

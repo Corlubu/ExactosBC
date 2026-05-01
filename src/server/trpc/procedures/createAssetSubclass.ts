@@ -6,11 +6,10 @@ import { db } from "~/server/db";
 export const createAssetSubclass = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       classId: z.number(),
       description: z.string().min(1, "Description is required"),
       abbreviation: z.string().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");

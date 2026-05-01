@@ -7,7 +7,6 @@ import { chromium } from "playwright";
 import { Readable } from "stream";
 
 const inputSchema = z.object({
-  authToken: z.string(),
   status: z.string().optional(),
   locationId: z.number().optional(),
   branchId: z.number().optional(),
@@ -49,22 +48,31 @@ export const exportAssetsReportPdf = baseProcedure
       // Inject auth token into localStorage before navigating
       await page.goto(baseUrl);
       await page.evaluate((token) => {
-        localStorage.setItem("assetmaster-auth", JSON.stringify({
-          state: { authToken: token },
-          version: 0,
-        }));
+        localStorage.setItem(
+          "assetmaster-auth",
+          JSON.stringify({
+            state: { authToken: token },
+            version: 0,
+          }),
+        );
       }, input.authToken);
 
       // Build URL with search parameters
       const searchParams = new URLSearchParams();
       if (input.search) searchParams.set("search", input.search);
       if (input.status) searchParams.set("status", input.status);
-      if (input.locationId) searchParams.set("locationId", input.locationId.toString());
-      if (input.branchId) searchParams.set("branchId", input.branchId.toString());
-      if (input.departmentId) searchParams.set("departmentId", input.departmentId.toString());
-      if (input.assetTypeId) searchParams.set("assetTypeId", input.assetTypeId.toString());
-      if (input.assetClassId) searchParams.set("assetClassId", input.assetClassId.toString());
-      if (input.assignedToUserId) searchParams.set("assignedToUserId", input.assignedToUserId.toString());
+      if (input.locationId)
+        searchParams.set("locationId", input.locationId.toString());
+      if (input.branchId)
+        searchParams.set("branchId", input.branchId.toString());
+      if (input.departmentId)
+        searchParams.set("departmentId", input.departmentId.toString());
+      if (input.assetTypeId)
+        searchParams.set("assetTypeId", input.assetTypeId.toString());
+      if (input.assetClassId)
+        searchParams.set("assetClassId", input.assetClassId.toString());
+      if (input.assignedToUserId)
+        searchParams.set("assignedToUserId", input.assignedToUserId.toString());
       if (input.startDate) searchParams.set("startDate", input.startDate);
       if (input.endDate) searchParams.set("endDate", input.endDate);
 
@@ -74,7 +82,7 @@ export const exportAssetsReportPdf = baseProcedure
       await page.goto(pdfViewUrl, { waitUntil: "networkidle" });
 
       // Wait for the report content to load
-      await page.waitForSelector('text=Asset Report', { timeout: 15000 });
+      await page.waitForSelector("text=Asset Report", { timeout: 15000 });
 
       // Give it a moment for any final rendering
       await page.waitForTimeout(1000);
@@ -107,14 +115,14 @@ export const exportAssetsReportPdf = baseProcedure
         pdfBuffer.length,
         {
           "Content-Type": "application/pdf",
-        }
+        },
       );
 
       // Generate a presigned URL valid for 24 hours
       const downloadUrl = await minioClient.presignedGetObject(
         bucketName,
         filename,
-        24 * 60 * 60
+        24 * 60 * 60,
       );
 
       return {

@@ -6,13 +6,12 @@ import { db } from "~/server/db";
 export const updateUserCustodianDetails = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       userId: z.number(),
       firstName: z.string().min(1, "First name is required"),
       lastName: z.string().min(1, "Last name is required"),
       position: z.string().optional(),
       identificationNumber: z.string().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.users");

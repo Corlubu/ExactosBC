@@ -6,7 +6,6 @@ import { db } from "~/server/db";
 export const updateLocation = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       id: z.number(),
       name: z.string().min(1, "Location name is required").optional(),
       type: z.string().min(1, "Location type is required").optional(),
@@ -16,7 +15,7 @@ export const updateLocation = baseProcedure
       parentId: z.number().optional().nullable(),
       branchId: z.number().optional().nullable(),
       departmentId: z.number().optional().nullable(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -74,7 +73,10 @@ export const updateLocation = baseProcedure
       }
 
       // If both branch and department are being set, verify they match
-      const branchIdToCheck = input.branchId !== undefined ? input.branchId : existingLocation.branchId;
+      const branchIdToCheck =
+        input.branchId !== undefined
+          ? input.branchId
+          : existingLocation.branchId;
       if (branchIdToCheck && department.branchId !== branchIdToCheck) {
         throw new Error("Department does not belong to the selected branch");
       }
@@ -88,7 +90,8 @@ export const updateLocation = baseProcedure
     if (input.longitude !== undefined) updateData.longitude = input.longitude;
     if (input.parentId !== undefined) updateData.parentId = input.parentId;
     if (input.branchId !== undefined) updateData.branchId = input.branchId;
-    if (input.departmentId !== undefined) updateData.departmentId = input.departmentId;
+    if (input.departmentId !== undefined)
+      updateData.departmentId = input.departmentId;
 
     const location = await db.location.update({
       where: { id: input.id },

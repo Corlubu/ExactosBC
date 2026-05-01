@@ -7,11 +7,13 @@ import { authenticateRequest, createAuditLog } from "~/server/utils/auth";
 export const updateCompanySettings = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       name: z.string().min(1, "Company name is required"),
       // Branding
       logoUrl: z.string().optional(),
-      brandColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color").optional(),
+      brandColor: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color")
+        .optional(),
       // Regional Settings
       defaultCurrency: z.string().optional(),
       defaultTimezone: z.string().optional(),
@@ -23,25 +25,25 @@ export const updateCompanySettings = baseProcedure
       apiKey: z.string().optional(),
       // Barcode Label Configuration
       barcodeLabelConfig: z.any().optional(), // JSON object for label configuration
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
-    
+
     // Get current company data for audit log
     const currentCompany = await db.company.findUnique({
       where: {
         id: auth.companyId,
       },
     });
-    
+
     if (!currentCompany) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Company not found",
       });
     }
-    
+
     // Update company
     const updatedCompany = await db.company.update({
       where: {
@@ -53,21 +55,31 @@ export const updateCompanySettings = baseProcedure
         ...(input.logoUrl !== undefined && { logoUrl: input.logoUrl }),
         ...(input.brandColor !== undefined && { brandColor: input.brandColor }),
         // Regional Settings
-        ...(input.defaultCurrency !== undefined && { defaultCurrency: input.defaultCurrency }),
-        ...(input.defaultTimezone !== undefined && { defaultTimezone: input.defaultTimezone }),
-        ...(input.defaultLanguage !== undefined && { defaultLanguage: input.defaultLanguage }),
+        ...(input.defaultCurrency !== undefined && {
+          defaultCurrency: input.defaultCurrency,
+        }),
+        ...(input.defaultTimezone !== undefined && {
+          defaultTimezone: input.defaultTimezone,
+        }),
+        ...(input.defaultLanguage !== undefined && {
+          defaultLanguage: input.defaultLanguage,
+        }),
         // Email Notifications
-        ...(input.emailNotificationsEnabled !== undefined && { emailNotificationsEnabled: input.emailNotificationsEnabled }),
-        ...(input.notificationEmail !== undefined && { notificationEmail: input.notificationEmail }),
+        ...(input.emailNotificationsEnabled !== undefined && {
+          emailNotificationsEnabled: input.emailNotificationsEnabled,
+        }),
+        ...(input.notificationEmail !== undefined && {
+          notificationEmail: input.notificationEmail,
+        }),
         // API Access
         ...(input.apiKey !== undefined && { apiKey: input.apiKey }),
         // Barcode Label Configuration
-        ...(input.barcodeLabelConfig !== undefined && { 
-          barcodeLabelConfig: JSON.stringify(input.barcodeLabelConfig) 
+        ...(input.barcodeLabelConfig !== undefined && {
+          barcodeLabelConfig: JSON.stringify(input.barcodeLabelConfig),
         }),
       },
     });
-    
+
     // Create audit log
     await createAuditLog({
       userId: auth.user.id,
@@ -85,8 +97,8 @@ export const updateCompanySettings = baseProcedure
         emailNotificationsEnabled: currentCompany.emailNotificationsEnabled,
         notificationEmail: currentCompany.notificationEmail,
         apiKey: currentCompany.apiKey,
-        barcodeLabelConfig: currentCompany.barcodeLabelConfig 
-          ? JSON.parse(currentCompany.barcodeLabelConfig) 
+        barcodeLabelConfig: currentCompany.barcodeLabelConfig
+          ? JSON.parse(currentCompany.barcodeLabelConfig)
           : null,
       },
       newValues: {
@@ -99,12 +111,12 @@ export const updateCompanySettings = baseProcedure
         emailNotificationsEnabled: updatedCompany.emailNotificationsEnabled,
         notificationEmail: updatedCompany.notificationEmail,
         apiKey: updatedCompany.apiKey,
-        barcodeLabelConfig: updatedCompany.barcodeLabelConfig 
-          ? JSON.parse(updatedCompany.barcodeLabelConfig) 
+        barcodeLabelConfig: updatedCompany.barcodeLabelConfig
+          ? JSON.parse(updatedCompany.barcodeLabelConfig)
           : null,
       },
     });
-    
+
     return {
       success: true,
       company: {
@@ -119,8 +131,8 @@ export const updateCompanySettings = baseProcedure
         emailNotificationsEnabled: updatedCompany.emailNotificationsEnabled,
         notificationEmail: updatedCompany.notificationEmail,
         apiKey: updatedCompany.apiKey,
-        barcodeLabelConfig: updatedCompany.barcodeLabelConfig 
-          ? JSON.parse(updatedCompany.barcodeLabelConfig) 
+        barcodeLabelConfig: updatedCompany.barcodeLabelConfig
+          ? JSON.parse(updatedCompany.barcodeLabelConfig)
           : null,
       },
     };

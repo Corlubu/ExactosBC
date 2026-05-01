@@ -7,9 +7,8 @@ import { requirePermission, createAuditLog } from "~/server/utils/auth";
 export const deleteUser = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       userId: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.users");

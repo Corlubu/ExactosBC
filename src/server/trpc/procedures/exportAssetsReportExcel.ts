@@ -8,7 +8,6 @@ import ExcelJS from "exceljs";
 export const exportAssetsReportExcel = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       status: z.string().optional(),
       locationId: z.number().optional(),
       branchId: z.number().optional(),
@@ -19,7 +18,7 @@ export const exportAssetsReportExcel = baseProcedure
       startDate: z.string().date().optional(),
       endDate: z.string().date().optional(),
       search: z.string().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "finance.reports");
@@ -38,7 +37,10 @@ export const exportAssetsReportExcel = baseProcedure
         gte?: Date;
         lte?: Date;
       };
-      OR?: Array<{ name: { contains: string; mode: "insensitive" } } | { assetTag: { contains: string; mode: "insensitive" } }>;
+      OR?: Array<
+        | { name: { contains: string; mode: "insensitive" } }
+        | { assetTag: { contains: string; mode: "insensitive" } }
+      >;
     } = {
       companyId: auth.companyId,
     };
@@ -143,7 +145,11 @@ export const exportAssetsReportExcel = baseProcedure
       { header: "Asset Class", key: "assetClass", width: 25 },
       { header: "Asset Subclass", key: "assetSubclass", width: 25 },
       { header: "Assigned To", key: "assignedTo", width: 25 },
-      { header: "Assignment Start Date", key: "assignmentStartDate", width: 20 },
+      {
+        header: "Assignment Start Date",
+        key: "assignmentStartDate",
+        width: 20,
+      },
     ];
 
     // Style the header row
@@ -167,20 +173,36 @@ export const exportAssetsReportExcel = baseProcedure
         status: asset.status,
         acquisitionCost: asset.acquisitionCost,
         currentValue: asset.currentValue,
-        acquisitionDate: asset.acquisitionDate ? new Date(asset.acquisitionDate).toLocaleDateString() : "",
-        serviceDate: asset.serviceDate ? new Date(asset.serviceDate).toLocaleDateString() : "",
+        acquisitionDate: asset.acquisitionDate
+          ? new Date(asset.acquisitionDate).toLocaleDateString()
+          : "",
+        serviceDate: asset.serviceDate
+          ? new Date(asset.serviceDate).toLocaleDateString()
+          : "",
         serialNumber: asset.serialNumber || "",
         manufacturer: asset.manufacturer || "",
         model: asset.model || "",
         supplier: asset.supplier || "",
         location: asset.location?.name || "",
-        branch: asset.branch ? `${asset.branch.code} - ${asset.branch.name}` : "",
-        department: asset.department ? `${asset.department.code} - ${asset.department.name}` : "",
-        assetType: asset.assetType ? `${asset.assetType.code} - ${asset.assetType.name}` : "",
-        assetClass: asset.assetClass ? `${asset.assetClass.code} - ${asset.assetClass.description}` : "",
+        branch: asset.branch
+          ? `${asset.branch.code} - ${asset.branch.name}`
+          : "",
+        department: asset.department
+          ? `${asset.department.code} - ${asset.department.name}`
+          : "",
+        assetType: asset.assetType
+          ? `${asset.assetType.code} - ${asset.assetType.name}`
+          : "",
+        assetClass: asset.assetClass
+          ? `${asset.assetClass.code} - ${asset.assetClass.description}`
+          : "",
         assetSubclass: asset.assetSubclass?.description || "",
-        assignedTo: asset.assignments[0] ? `${asset.assignments[0].user.firstName} ${asset.assignments[0].user.lastName}` : "",
-        assignmentStartDate: asset.assignments[0] ? new Date(asset.assignments[0].startDate).toLocaleDateString() : "",
+        assignedTo: asset.assignments[0]
+          ? `${asset.assignments[0].user.firstName} ${asset.assignments[0].user.lastName}`
+          : "",
+        assignmentStartDate: asset.assignments[0]
+          ? new Date(asset.assignments[0].startDate).toLocaleDateString()
+          : "",
       });
     });
 
@@ -199,7 +221,7 @@ export const exportAssetsReportExcel = baseProcedure
     // Format currency columns
     const acquisitionCostCol = worksheet.getColumn("acquisitionCost");
     acquisitionCostCol.numFmt = "$#,##0.00";
-    
+
     const currentValueCol = worksheet.getColumn("currentValue");
     currentValueCol.numFmt = "$#,##0.00";
 
@@ -219,11 +241,16 @@ export const exportAssetsReportExcel = baseProcedure
 
     // Upload file
     await minioClient.putObject(bucketName, fileName, buffer, buffer.length, {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
     // Generate presigned URL (valid for 1 hour)
-    const presignedUrl = await minioClient.presignedGetObject(bucketName, fileName, 60 * 60);
+    const presignedUrl = await minioClient.presignedGetObject(
+      bucketName,
+      fileName,
+      60 * 60,
+    );
 
     return {
       downloadUrl: presignedUrl,

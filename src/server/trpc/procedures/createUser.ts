@@ -8,7 +8,6 @@ import { requirePermission, createAuditLog } from "~/server/utils/auth";
 export const createUser = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       email: z.string().email(),
       password: z.string().min(8, "Password must be at least 8 characters"),
       firstName: z.string().min(1, "First name is required"),
@@ -19,7 +18,7 @@ export const createUser = baseProcedure
       isActive: z.boolean().optional().default(true),
       branchId: z.number().optional(),
       departmentId: z.number().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.users");
@@ -55,7 +54,8 @@ export const createUser = baseProcedure
       if (existingUserByIdNumber) {
         throw new TRPCError({
           code: "CONFLICT",
-          message: "A user with this identification number already exists in your company",
+          message:
+            "A user with this identification number already exists in your company",
         });
       }
     }

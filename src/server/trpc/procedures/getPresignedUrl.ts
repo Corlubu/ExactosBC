@@ -6,10 +6,17 @@ import { minioClient, minioBaseUrl } from "~/server/minio";
 export const getPresignedUrl = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       fileName: z.string(),
-      fileType: z.enum(["PHOTO", "INVOICE", "CONTRACT", "INSURANCE_POLICY", "WARRANTY", "LOGO", "OTHER"]),
-    })
+      fileType: z.enum([
+        "PHOTO",
+        "INVOICE",
+        "CONTRACT",
+        "INSURANCE_POLICY",
+        "WARRANTY",
+        "LOGO",
+        "OTHER",
+      ]),
+    }),
   )
   .mutation(async ({ input }) => {
     await authenticateRequest(input.authToken);
@@ -23,7 +30,7 @@ export const getPresignedUrl = baseProcedure
     const uploadUrl = await minioClient.presignedPutObject(
       "asset-photos",
       objectName,
-      15 * 60 // 15 minutes
+      15 * 60, // 15 minutes
     );
 
     // Construct the public URL for accessing the file after upload

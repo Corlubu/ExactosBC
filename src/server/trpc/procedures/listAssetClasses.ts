@@ -6,9 +6,8 @@ import { db } from "~/server/db";
 export const listAssetClasses = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       assetTypeId: z.number().optional(),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -27,10 +26,7 @@ export const listAssetClasses = baseProcedure
           },
         },
       },
-      orderBy: [
-        { assetTypeId: "asc" },
-        { code: "asc" },
-      ],
+      orderBy: [{ assetTypeId: "asc" }, { code: "asc" }],
     });
 
     return {

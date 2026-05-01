@@ -4,11 +4,7 @@ import { authenticateRequest } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
 export const getDashboardStats = baseProcedure
-  .input(
-    z.object({
-      authToken: z.string(),
-    })
-  )
+  .input(z.object({}))
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
 
@@ -26,20 +22,32 @@ export const getDashboardStats = baseProcedure
     });
 
     const totalAssets = assets.length;
-    const totalValue = assets.reduce((sum, asset) => sum + asset.currentValue, 0);
-    const totalAcquisitionCost = assets.reduce((sum, asset) => sum + asset.acquisitionCost, 0);
+    const totalValue = assets.reduce(
+      (sum, asset) => sum + asset.currentValue,
+      0,
+    );
+    const totalAcquisitionCost = assets.reduce(
+      (sum, asset) => sum + asset.acquisitionCost,
+      0,
+    );
 
     // Group by status
-    const assetsByStatus = assets.reduce((acc: Record<string, number>, asset) => {
-      acc[asset.status] = (acc[asset.status] || 0) + 1;
-      return acc;
-    }, {});
+    const assetsByStatus = assets.reduce(
+      (acc: Record<string, number>, asset) => {
+        acc[asset.status] = (acc[asset.status] || 0) + 1;
+        return acc;
+      },
+      {},
+    );
 
     // Group by category
-    const assetsByCategory = assets.reduce((acc: Record<string, number>, asset) => {
-      acc[asset.category] = (acc[asset.category] || 0) + 1;
-      return acc;
-    }, {});
+    const assetsByCategory = assets.reduce(
+      (acc: Record<string, number>, asset) => {
+        acc[asset.category] = (acc[asset.category] || 0) + 1;
+        return acc;
+      },
+      {},
+    );
 
     // Get recent audit logs
     const recentActivity = await db.auditLog.findMany({

@@ -7,9 +7,8 @@ import { db } from "~/server/db";
 export const getTransferProcess = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       processId: z.number(),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);

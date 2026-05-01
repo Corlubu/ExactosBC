@@ -6,11 +6,10 @@ import { db } from "~/server/db";
 export const createBranch = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       name: z.string().min(1, "Branch name is required"),
       code: z.string().min(1, "Branch code is required"),
       address: z.string().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");

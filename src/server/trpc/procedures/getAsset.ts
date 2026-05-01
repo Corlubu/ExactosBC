@@ -7,9 +7,8 @@ import { db } from "~/server/db";
 export const getAsset = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       assetId: z.number(),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
@@ -131,43 +130,53 @@ export const getAsset = baseProcedure
       branchCode: asset.branchCode,
       activityProject: asset.activityProject,
       observations: asset.observations,
-      branch: asset.branch ? {
-        id: asset.branch.id,
-        name: asset.branch.name,
-        code: asset.branch.code,
-      } : null,
-      department: asset.department ? {
-        id: asset.department.id,
-        name: asset.department.name,
-        code: asset.department.code,
-        branch: {
-          id: asset.department.branch.id,
-          name: asset.department.branch.name,
-          code: asset.department.branch.code,
-        },
-      } : null,
-      assetType: asset.assetType ? {
-        id: asset.assetType.id,
-        name: asset.assetType.name,
-        code: asset.assetType.code,
-      } : null,
-      enteredBy: asset.enteredBy ? {
-        id: asset.enteredBy.id,
-        firstName: asset.enteredBy.firstName,
-        lastName: asset.enteredBy.lastName,
-        email: asset.enteredBy.email,
-      } : null,
+      branch: asset.branch
+        ? {
+            id: asset.branch.id,
+            name: asset.branch.name,
+            code: asset.branch.code,
+          }
+        : null,
+      department: asset.department
+        ? {
+            id: asset.department.id,
+            name: asset.department.name,
+            code: asset.department.code,
+            branch: {
+              id: asset.department.branch.id,
+              name: asset.department.branch.name,
+              code: asset.department.branch.code,
+            },
+          }
+        : null,
+      assetType: asset.assetType
+        ? {
+            id: asset.assetType.id,
+            name: asset.assetType.name,
+            code: asset.assetType.code,
+          }
+        : null,
+      enteredBy: asset.enteredBy
+        ? {
+            id: asset.enteredBy.id,
+            firstName: asset.enteredBy.firstName,
+            lastName: asset.enteredBy.lastName,
+            email: asset.enteredBy.email,
+          }
+        : null,
       seriesNumber: asset.seriesNumber,
       invoiceNumber: asset.invoiceNumber,
       component1: asset.component1,
       component2: asset.component2,
       component3: asset.component3,
-      assignedToUser: asset.assignedToUser ? {
-        id: asset.assignedToUser.id,
-        firstName: asset.assignedToUser.firstName,
-        lastName: asset.assignedToUser.lastName,
-        email: asset.assignedToUser.email,
-      } : null,
+      assignedToUser: asset.assignedToUser
+        ? {
+            id: asset.assignedToUser.id,
+            firstName: asset.assignedToUser.firstName,
+            lastName: asset.assignedToUser.lastName,
+            email: asset.assignedToUser.email,
+          }
+        : null,
       attachments: asset.attachments,
     };
   });

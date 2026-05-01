@@ -6,10 +6,15 @@ import { db } from "~/server/db";
 export const listAlertSettings = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
-      alertType: z.enum(["DEPRECIATION_MILESTONE", "BOOK_VALUE_THRESHOLD", "FULLY_DEPRECIATED"]).optional(),
+      alertType: z
+        .enum([
+          "DEPRECIATION_MILESTONE",
+          "BOOK_VALUE_THRESHOLD",
+          "FULLY_DEPRECIATED",
+        ])
+        .optional(),
       isEnabled: z.boolean().optional(),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);

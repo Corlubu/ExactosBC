@@ -7,9 +7,8 @@ import { db } from "~/server/db";
 export const deleteAsset = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       assetId: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "assets.delete");

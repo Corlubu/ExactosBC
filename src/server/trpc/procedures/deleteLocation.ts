@@ -6,9 +6,8 @@ import { db } from "~/server/db";
 export const deleteLocation = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       id: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -30,19 +29,19 @@ export const deleteLocation = baseProcedure
     // Check for data integrity
     if (location.assets.length > 0) {
       throw new Error(
-        `Cannot delete location: ${location.assets.length} asset(s) are assigned to this location`
+        `Cannot delete location: ${location.assets.length} asset(s) are assigned to this location`,
       );
     }
 
     if (location.inventoryProcesses.length > 0) {
       throw new Error(
-        `Cannot delete location: ${location.inventoryProcesses.length} inventory process(es) are linked to this location`
+        `Cannot delete location: ${location.inventoryProcesses.length} inventory process(es) are linked to this location`,
       );
     }
 
     if (location.movementsFrom.length > 0 || location.movementsTo.length > 0) {
       throw new Error(
-        "Cannot delete location: asset movements are linked to this location"
+        "Cannot delete location: asset movements are linked to this location",
       );
     }
 
@@ -55,7 +54,7 @@ export const deleteLocation = baseProcedure
 
     if (childLocations.length > 0) {
       throw new Error(
-        `Cannot delete location: ${childLocations.length} child location(s) depend on this location`
+        `Cannot delete location: ${childLocations.length} child location(s) depend on this location`,
       );
     }
 

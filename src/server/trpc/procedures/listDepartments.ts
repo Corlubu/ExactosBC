@@ -6,9 +6,8 @@ import { db } from "~/server/db";
 export const listDepartments = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       branchId: z.number().optional(),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
@@ -18,10 +17,7 @@ export const listDepartments = baseProcedure
         companyId: auth.companyId,
         ...(input.branchId ? { branchId: input.branchId } : {}),
       },
-      orderBy: [
-        { branch: { code: "asc" } },
-        { code: "asc" },
-      ],
+      orderBy: [{ branch: { code: "asc" } }, { code: "asc" }],
       include: {
         branch: true,
         departmentHead: {

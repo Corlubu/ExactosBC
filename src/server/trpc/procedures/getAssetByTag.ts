@@ -7,9 +7,8 @@ import { db } from "~/server/db";
 export const getAssetByTag = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       assetTag: z.string(),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);

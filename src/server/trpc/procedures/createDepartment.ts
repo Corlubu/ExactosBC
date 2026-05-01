@@ -6,12 +6,11 @@ import { db } from "~/server/db";
 export const createDepartment = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       name: z.string().min(1, "Department name is required"),
       code: z.string().min(1, "Department code is required"),
       branchId: z.number(),
       departmentHeadId: z.number().optional(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -51,7 +50,9 @@ export const createDepartment = baseProcedure
     });
 
     if (existingDepartment) {
-      throw new Error("A department with this code already exists in this branch");
+      throw new Error(
+        "A department with this code already exists in this branch",
+      );
     }
 
     const department = await db.department.create({

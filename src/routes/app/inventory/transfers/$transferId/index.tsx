@@ -30,9 +30,8 @@ function TransferDetailPage() {
 
   const transferQuery = useQuery(
     trpc.getTransferProcess.queryOptions({
-      authToken: authToken || "",
       processId: parseInt(transferId),
-    })
+    }),
   );
 
   const completeTransferMutation = useMutation(
@@ -44,7 +43,7 @@ function TransferDetailPage() {
       onError: (error) => {
         toast.error(error.message || t("inventory.failedToComplete"));
       },
-    })
+    }),
   );
 
   const cancelTransferMutation = useMutation(
@@ -56,13 +55,12 @@ function TransferDetailPage() {
       onError: (error) => {
         toast.error(error.message || t("inventory.failedToCancel"));
       },
-    })
+    }),
   );
 
   const handleComplete = () => {
     if (confirm(t("inventory.confirmComplete"))) {
       completeTransferMutation.mutate({
-        authToken: authToken || "",
         processId: parseInt(transferId),
       });
     }
@@ -71,7 +69,6 @@ function TransferDetailPage() {
   const handleCancel = () => {
     if (confirm(t("inventory.confirmCancel"))) {
       cancelTransferMutation.mutate({
-        authToken: authToken || "",
         processId: parseInt(transferId),
       });
     }
@@ -81,22 +78,22 @@ function TransferDetailPage() {
     switch (status) {
       case "IN_PROGRESS":
         return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-            <Clock className="w-4 h-4 mr-1" />
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+            <Clock className="mr-1 h-4 w-4" />
             {t("inventory.inProgress")}
           </span>
         );
       case "COMPLETED":
         return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-            <CheckCircle className="w-4 h-4 mr-1" />
+          <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
+            <CheckCircle className="mr-1 h-4 w-4" />
             {t("inventory.completed")}
           </span>
         );
       case "CANCELLED":
         return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-            <XCircle className="w-4 h-4 mr-1" />
+          <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800">
+            <XCircle className="mr-1 h-4 w-4" />
             {t("inventory.cancelled")}
           </span>
         );
@@ -108,9 +105,11 @@ function TransferDetailPage() {
   if (transferQuery.isLoading) {
     return (
       <div className="p-8">
-        <div className="max-w-6xl mx-auto text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-          <p className="mt-2 text-gray-600">{t("inventory.loadingTransferDetails")}</p>
+        <div className="mx-auto max-w-6xl py-12 text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-green-600"></div>
+          <p className="mt-2 text-gray-600">
+            {t("inventory.loadingTransferDetails")}
+          </p>
         </div>
       </div>
     );
@@ -119,7 +118,7 @@ function TransferDetailPage() {
   if (!transferQuery.data) {
     return (
       <div className="p-8">
-        <div className="max-w-6xl mx-auto text-center py-12">
+        <div className="mx-auto max-w-6xl py-12 text-center">
           <p className="text-red-600">{t("inventory.transferNotFound")}</p>
         </div>
       </div>
@@ -130,20 +129,20 @@ function TransferDetailPage() {
 
   return (
     <div className="p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => navigate({ to: "/app/inventory/transfers" })}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
             {t("inventory.backToTransfers")}
           </button>
 
           <div className="flex items-start justify-between">
             <div>
-              <div className="flex items-center space-x-3 mb-2">
+              <div className="mb-2 flex items-center space-x-3">
                 <h1 className="text-3xl font-bold text-gray-900">
                   {transfer.type} #{transfer.id}
                 </h1>
@@ -151,13 +150,15 @@ function TransferDetailPage() {
               </div>
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 <span className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  {t("inventory.started")} {new Date(transfer.startDate).toLocaleString()}
+                  <Calendar className="mr-1 h-4 w-4" />
+                  {t("inventory.started")}{" "}
+                  {new Date(transfer.startDate).toLocaleString()}
                 </span>
                 {transfer.endDate && (
                   <span className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    {t("inventory.ended")} {new Date(transfer.endDate).toLocaleString()}
+                    <Calendar className="mr-1 h-4 w-4" />
+                    {t("inventory.ended")}{" "}
+                    {new Date(transfer.endDate).toLocaleString()}
                   </span>
                 )}
               </div>
@@ -168,16 +169,18 @@ function TransferDetailPage() {
                 <button
                   onClick={handleCancel}
                   disabled={cancelTransferMutation.isPending}
-                  className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                  className="rounded-lg border border-red-300 px-4 py-2 text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50"
                 >
                   {t("inventory.cancelTransfer")}
                 </button>
                 <button
                   onClick={handleComplete}
                   disabled={completeTransferMutation.isPending}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                  className="rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700 disabled:opacity-50"
                 >
-                  {completeTransferMutation.isPending ? t("inventory.completing") : t("inventory.completeTransfer")}
+                  {completeTransferMutation.isPending
+                    ? t("inventory.completing")
+                    : t("inventory.completeTransfer")}
                 </button>
               </div>
             )}
@@ -185,36 +188,41 @@ function TransferDetailPage() {
         </div>
 
         {/* Transfer Details */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("inventory.transferInformation")}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            {t("inventory.transferInformation")}
+          </h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {transfer.location && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   {t("inventory.defaultLocation")}
                 </label>
                 <div className="flex items-center text-gray-900">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                  <MapPin className="mr-2 h-4 w-4 text-gray-500" />
                   {transfer.location.name}
                 </div>
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
                 {t("inventory.totalAssets")}
               </label>
               <div className="flex items-center text-gray-900">
-                <Package className="w-4 h-4 mr-2 text-gray-500" />
-                {transfer.movements.length} {transfer.movements.length === 1 ? t("inventory.assetSingular") : t("inventory.assetPlural")}
+                <Package className="mr-2 h-4 w-4 text-gray-500" />
+                {transfer.movements.length}{" "}
+                {transfer.movements.length === 1
+                  ? t("inventory.assetSingular")
+                  : t("inventory.assetPlural")}
               </div>
             </div>
             {transfer.notes && (
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   {t("inventory.notes")}
                 </label>
                 <div className="flex items-start text-gray-900">
-                  <FileText className="w-4 h-4 mr-2 mt-0.5 text-gray-500" />
+                  <FileText className="mr-2 mt-0.5 h-4 w-4 text-gray-500" />
                   <span>{transfer.notes}</span>
                 </div>
               </div>
@@ -223,11 +231,13 @@ function TransferDetailPage() {
         </div>
 
         {/* Asset Movements */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("inventory.assetMovements")}</h2>
-          
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">
+            {t("inventory.assetMovements")}
+          </h2>
+
           {transfer.movements.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="py-8 text-center text-gray-500">
               {t("inventory.noAssetsInTransfer")}
             </div>
           ) : (
@@ -235,86 +245,106 @@ function TransferDetailPage() {
               {transfer.movements.map((movement) => (
                 <div
                   key={movement.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors"
+                  className="rounded-lg border border-gray-200 p-4 transition-colors hover:border-green-300"
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="mb-3 flex items-start justify-between">
                     <div className="flex items-start space-x-3">
                       {movement.asset.photoUrl ? (
                         <img
                           src={movement.asset.photoUrl}
                           alt={movement.asset.name}
-                          className="w-16 h-16 object-cover rounded-lg"
+                          className="h-16 w-16 rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <Package className="w-8 h-8 text-gray-400" />
+                        <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gray-200">
+                          <Package className="h-8 w-8 text-gray-400" />
                         </div>
                       )}
                       <div>
-                        <h3 className="font-semibold text-gray-900">{movement.asset.name}</h3>
-                        <p className="text-sm text-gray-600">Tag: {movement.asset.assetTag}</p>
-                        <p className="text-xs text-gray-500">{movement.asset.category}</p>
+                        <h3 className="font-semibold text-gray-900">
+                          {movement.asset.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Tag: {movement.asset.assetTag}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {movement.asset.category}
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   {/* Movement Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-200">
+                  <div className="grid grid-cols-1 gap-4 border-t border-gray-200 pt-3 md:grid-cols-2">
                     {/* From */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">{t("inventory.from")}</label>
+                      <label className="mb-1 block text-xs font-medium text-gray-500">
+                        {t("inventory.from")}
+                      </label>
                       <div className="space-y-1">
                         {movement.fromLocation && (
                           <div className="flex items-center text-sm text-gray-700">
-                            <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                            <MapPin className="mr-2 h-4 w-4 text-gray-400" />
                             {movement.fromLocation.name}
                           </div>
                         )}
                         {movement.fromUser && (
                           <div className="flex items-center text-sm text-gray-700">
-                            <User className="w-4 h-4 mr-2 text-gray-400" />
-                            {movement.fromUser.firstName} {movement.fromUser.lastName}
+                            <User className="mr-2 h-4 w-4 text-gray-400" />
+                            {movement.fromUser.firstName}{" "}
+                            {movement.fromUser.lastName}
                           </div>
                         )}
                         {!movement.fromLocation && !movement.fromUser && (
-                          <span className="text-sm text-gray-400">{t("inventory.notSpecified")}</span>
+                          <span className="text-sm text-gray-400">
+                            {t("inventory.notSpecified")}
+                          </span>
                         )}
                       </div>
                     </div>
 
                     {/* To */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">{t("inventory.to")}</label>
+                      <label className="mb-1 block text-xs font-medium text-gray-500">
+                        {t("inventory.to")}
+                      </label>
                       <div className="space-y-1">
                         {movement.toLocation && (
-                          <div className="flex items-center text-sm text-gray-900 font-medium">
-                            <MapPin className="w-4 h-4 mr-2 text-green-600" />
+                          <div className="flex items-center text-sm font-medium text-gray-900">
+                            <MapPin className="mr-2 h-4 w-4 text-green-600" />
                             {movement.toLocation.name}
                           </div>
                         )}
                         {movement.toUser && (
-                          <div className="flex items-center text-sm text-gray-900 font-medium">
-                            <User className="w-4 h-4 mr-2 text-green-600" />
-                            {movement.toUser.firstName} {movement.toUser.lastName}
+                          <div className="flex items-center text-sm font-medium text-gray-900">
+                            <User className="mr-2 h-4 w-4 text-green-600" />
+                            {movement.toUser.firstName}{" "}
+                            {movement.toUser.lastName}
                           </div>
                         )}
                         {!movement.toLocation && !movement.toUser && (
-                          <span className="text-sm text-gray-400">{t("inventory.notSpecified")}</span>
+                          <span className="text-sm text-gray-400">
+                            {t("inventory.notSpecified")}
+                          </span>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {movement.notes && (
-                    <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="mt-3 border-t border-gray-200 pt-3">
                       <p className="text-sm text-gray-600">
-                        <span className="font-medium">{t("inventory.notes")}:</span> {movement.notes}
+                        <span className="font-medium">
+                          {t("inventory.notes")}:
+                        </span>{" "}
+                        {movement.notes}
                       </p>
                     </div>
                   )}
 
-                  <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
-                    {t("inventory.movementDate")} {new Date(movement.movementDate).toLocaleString()}
+                  <div className="mt-3 border-t border-gray-200 pt-3 text-xs text-gray-500">
+                    {t("inventory.movementDate")}{" "}
+                    {new Date(movement.movementDate).toLocaleString()}
                   </div>
                 </div>
               ))}

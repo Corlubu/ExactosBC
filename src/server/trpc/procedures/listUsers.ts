@@ -1,9 +1,9 @@
 import { z } from "zod";
 // IMPORTANTE: Aseguramos la autenticación mediante el middleware centralizado
-import { protectedProcedure } from "~/server/trpc/main";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listUsers = protectedProcedure
+export const listUsers = protectedProcedureWithPermission
   .input(
     z
       .object({

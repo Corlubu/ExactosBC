@@ -7,9 +7,8 @@ import { db } from "~/server/db";
 export const cancelTransferProcess = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       processId: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "inventory.transfer");

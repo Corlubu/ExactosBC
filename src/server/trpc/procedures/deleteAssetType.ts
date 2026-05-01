@@ -6,9 +6,8 @@ import { db } from "~/server/db";
 export const deleteAssetType = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       id: z.number(),
-    })
+    }),
   )
   .mutation(async ({ input }) => {
     const auth = await requirePermission(input.authToken, "admin.settings");
@@ -34,7 +33,9 @@ export const deleteAssetType = baseProcedure
 
     // Check if asset type has assets
     if (existingAssetType._count.assets > 0) {
-      throw new Error("Cannot delete asset type with existing assets. Please delete or reassign assets first.");
+      throw new Error(
+        "Cannot delete asset type with existing assets. Please delete or reassign assets first.",
+      );
     }
 
     await db.assetType.delete({

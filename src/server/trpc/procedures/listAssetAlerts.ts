@@ -6,12 +6,17 @@ import { db } from "~/server/db";
 export const listAssetAlerts = baseProcedure
   .input(
     z.object({
-      authToken: z.string(),
       status: z.enum(["ACTIVE", "ACKNOWLEDGED", "DISMISSED"]).optional(),
       assetId: z.number().optional(),
-      alertType: z.enum(["DEPRECIATION_MILESTONE", "BOOK_VALUE_THRESHOLD", "FULLY_DEPRECIATED"]).optional(),
+      alertType: z
+        .enum([
+          "DEPRECIATION_MILESTONE",
+          "BOOK_VALUE_THRESHOLD",
+          "FULLY_DEPRECIATED",
+        ])
+        .optional(),
       limit: z.number().min(1).max(100).default(50),
-    })
+    }),
   )
   .query(async ({ input }) => {
     const auth = await authenticateRequest(input.authToken);
