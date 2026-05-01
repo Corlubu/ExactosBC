@@ -1,4 +1,10 @@
-import { createFileRoute, Outlet, Link, Navigate, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  Link,
+  Navigate,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/react";
 import { useAuthStore } from "~/stores/auth";
@@ -22,6 +28,20 @@ import { useLanguage } from "~/contexts/LanguageContext";
 import { LanguageSelector } from "~/components/LanguageSelector";
 
 export const Route = createFileRoute("/app")({
+  beforeLoad: () => {
+    // Verificamos de forma sincrónica si existe el token en Zustand
+    const isAuthenticated = !!useAuthStore.getState().authToken;
+
+    if (!isAuthenticated) {
+      // Si no hay token, lo mandamos al login limpiamente
+      throw redirect({
+        to: "/login",
+        search: {
+          redirect: location.href, // Opcional: para devolverlo a donde quería ir
+        },
+      });
+    }
+  },
   component: AppLayout,
 });
 
@@ -47,8 +67,8 @@ function AppLayout() {
   const currentUserQuery = useQuery(
     trpc.getCurrentUser.queryOptions(
       { authToken: authToken || "" },
-      { enabled: !!authToken }
-    )
+      { enabled: !!authToken },
+    ),
   );
 
   if (!authToken) {
@@ -57,9 +77,9 @@ function AppLayout() {
 
   if (currentUserQuery.isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
           <p className="mt-4 text-gray-600">{t("common.loading")}</p>
         </div>
       </div>
@@ -81,7 +101,9 @@ function AppLayout() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar */}
-      <div className={`lg:hidden fixed inset-0 z-50 ${sidebarOpen ? "" : "pointer-events-none"}`}>
+      <div
+        className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? "" : "pointer-events-none"}`}
+      >
         <div
           className={`fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity ${
             sidebarOpen ? "opacity-100" : "opacity-0"
@@ -89,29 +111,36 @@ function AppLayout() {
           onClick={() => setSidebarOpen(false)}
         />
         <div
-          className={`fixed inset-y-0 left-0 flex flex-col w-64 bg-white transform transition-transform ${
+          className={`fixed inset-y-0 left-0 flex w-64 transform flex-col bg-white transition-transform ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+          <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6">
             <div className="flex items-center space-x-2">
-              <Building2 className="w-8 h-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">{t("app.assetMaster")}</span>
+              <Building2 className="h-8 w-8 text-blue-600" />
+              <span className="text-xl font-bold text-gray-900">
+                {t("app.assetMaster")}
+              </span>
             </div>
-            <button onClick={() => setSidebarOpen(false)} className="text-gray-500 hover:text-gray-700">
-              <X className="w-6 h-6" />
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-6 w-6" />
             </button>
           </div>
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+          <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-                activeProps={{ className: "bg-blue-50 text-blue-600 hover:bg-blue-50" }}
+                className="flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100"
+                activeProps={{
+                  className: "bg-blue-50 text-blue-600 hover:bg-blue-50",
+                }}
                 onClick={() => setSidebarOpen(false)}
               >
-                <item.icon className="w-5 h-5 mr-3" />
+                <item.icon className="mr-3 h-5 w-5" />
                 <span className="font-medium">{item.name}</span>
               </Link>
             ))}
@@ -120,9 +149,9 @@ function AppLayout() {
             <LanguageSelector />
             <button
               onClick={handleLogout}
-              className="flex items-center w-full px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex w-full items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100"
             >
-              <LogOut className="w-5 h-5 mr-3" />
+              <LogOut className="mr-3 h-5 w-5" />
               <span className="font-medium">{t("auth.logout")}</span>
             </button>
           </div>
@@ -131,24 +160,28 @@ function AppLayout() {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-1 min-h-0 bg-white border-r border-gray-200">
-          <div className="flex items-center h-16 px-6 border-b border-gray-200 justify-between">
+        <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+          <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6">
             <div className="flex items-center space-x-2">
-              <Building2 className="w-8 h-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">{t("app.assetMaster")}</span>
+              <Building2 className="h-8 w-8 text-blue-600" />
+              <span className="text-xl font-bold text-gray-900">
+                {t("app.assetMaster")}
+              </span>
             </div>
             <AlertNotificationBell />
           </div>
-          <div className="flex flex-col flex-1 overflow-y-auto">
-            <nav className="flex-1 px-4 py-6 space-y-1">
+          <div className="flex flex-1 flex-col overflow-y-auto">
+            <nav className="flex-1 space-y-1 px-4 py-6">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-                  activeProps={{ className: "bg-blue-50 text-blue-600 hover:bg-blue-50" }}
+                  className="flex items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100"
+                  activeProps={{
+                    className: "bg-blue-50 text-blue-600 hover:bg-blue-50",
+                  }}
                 >
-                  <item.icon className="w-5 h-5 mr-3" />
+                  <item.icon className="mr-3 h-5 w-5" />
                   <span className="font-medium">{item.name}</span>
                 </Link>
               ))}
@@ -161,14 +194,14 @@ function AppLayout() {
                 </p>
                 <p className="text-xs text-gray-500">{user?.companyName}</p>
                 {user?.role && (
-                  <p className="text-xs text-gray-500 mt-1">{user.role.name}</p>
+                  <p className="mt-1 text-xs text-gray-500">{user.role.name}</p>
                 )}
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center w-full px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex w-full items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100"
               >
-                <LogOut className="w-5 h-5 mr-3" />
+                <LogOut className="mr-3 h-5 w-5" />
                 <span className="font-medium">{t("auth.logout")}</span>
               </button>
             </div>
@@ -177,19 +210,21 @@ function AppLayout() {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64 flex flex-col flex-1">
+      <div className="flex flex-1 flex-col lg:pl-64">
         {/* Top bar for mobile */}
-        <div className="lg:hidden sticky top-0 z-10 flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200">
+        <div className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 lg:hidden">
           <div className="flex items-center">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="text-gray-500 hover:text-gray-700 mr-4"
+              className="mr-4 text-gray-500 hover:text-gray-700"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="h-6 w-6" />
             </button>
             <div className="flex items-center space-x-2">
-              <Building2 className="w-6 h-6 text-blue-600" />
-              <span className="text-lg font-bold text-gray-900">{t("app.assetMaster")}</span>
+              <Building2 className="h-6 w-6 text-blue-600" />
+              <span className="text-lg font-bold text-gray-900">
+                {t("app.assetMaster")}
+              </span>
             </div>
           </div>
           <AlertNotificationBell />
