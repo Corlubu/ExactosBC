@@ -1,35 +1,44 @@
 import { z } from "zod";
-import { protectedProcedure } from "~/server/trpc/main";
+import { TRPCError } from "@trpc/server";
+import { baseProcedure } from "~/server/trpc/main";
+import { authenticateRequest } from "~/server/utils/auth";
 
-// Cambiamos baseProcedure por protectedProcedure
-export const getCurrentUser = protectedProcedure
+export const getCurrentUser = baseProcedure
   .input(
-    // Dejamos el input opcional para no romper el frontend si aún envía el authToken
+    // Aceptamos el token explícitamente para evitar problemas de hidratación de Zustand/SSR
     z
       .object({
         authToken: z.string().optional(),
       })
       .optional(),
   )
-  .query(({ ctx }) => {
-    // Ya no necesitamos llamar a authenticateRequest manualmente.
-    // protectedProcedure ya validó el token y nos dejó el usuario seguro en `ctx.user`.
-    const { user, permissions } = ctx;
+  .query(async ({ input }) => {
+    const token = input?.authToken;
+
+    if (!token) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No authentication token provided",
+      });
+    }
+
+    // Autenticamos manualmente usando el token seguro que viajó en el payload
+    const auth = await authenticateRequest(token);
 
     return {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      companyId: user.companyId,
-      companyName: user.company.name,
-      role: user.role
+      id: auth.user.id,
+      email: auth.user.email,
+      firstName: auth.user.firstName,
+      lastName: auth.user.lastName,
+      companyId: auth.user.companyId,
+      companyName: auth.user.company.name,
+      role: auth.user.role
         ? {
-            id: user.role.id,
-            name: user.role.name,
-            description: user.role.description,
+            id: auth.user.role.id,
+            name: auth.user.role.name,
+            description: auth.user.role.description,
           }
         : null,
-      permissions: permissions, // Permisos extraídos directamente del middleware
+      permissions: auth.permissions,
     };
   });
