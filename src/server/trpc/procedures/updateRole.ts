@@ -4,7 +4,7 @@ import { db } from "~/server/db";
 import { TRPCError } from "@trpc/server";
 import { createAuditLog } from "~/server/utils/auth";
 
-export const updateRole = protectedProcedureWithPermission
+export const updateRole = protectedProcedureWithPermission("admin.users")
   .input(
     z.object({
       roleId: z.number(),

@@ -3,7 +3,9 @@ import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { DepreciationService } from "~/server/services/depreciation.service";
 import { handleTrpcError } from "~/server/trpc/error-mapper";
 
-export const runMonthlyDepreciation = protectedProcedureWithPermission
+export const runMonthlyDepreciation = protectedProcedureWithPermission(
+  "admin.users",
+)
   .input(
     z.object({
       year: z.number().int().min(1900).max(2100),

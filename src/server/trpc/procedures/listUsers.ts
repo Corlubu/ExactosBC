@@ -3,7 +3,7 @@ import { z } from "zod";
 import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listUsers = protectedProcedureWithPermission
+export const listUsers = protectedProcedureWithPermission("admin.users")
   .input(
     z
       .object({

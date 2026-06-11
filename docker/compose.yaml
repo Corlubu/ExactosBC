@@ -121,8 +121,6 @@ services:
     volumes:
       - ../:/app
       - node-modules-cache:/app/node_modules:nocopy
-    tmpfs:
-      - /app/.pnpm-store:ro,size=1k
     env_file:
       - ../.env
 

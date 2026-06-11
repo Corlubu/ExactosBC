@@ -71,7 +71,7 @@ COPY --from=builder --chown=reactjs:nodejs /app/.vinxi ./.vinxi
 COPY --from=builder --chown=reactjs:nodejs /app/package.json ./package.json
 
 # 4. Asegurar que el usuario tenga control total sobre /app (incluyendo subcarpetas)
-RUN chown -R reactjs:nodejs /app
+# RUN chown -R reactjs:nodejs /app
 
 # Cambiar al usuario sin privilegios
 USER reactjs

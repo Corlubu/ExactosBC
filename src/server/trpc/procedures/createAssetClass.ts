@@ -5,7 +5,7 @@ import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 import { TRPCError } from "@trpc/server";
 
-export const createAssetClass = protectedProcedureWithPermission
+export const createAssetClass = protectedProcedureWithPermission("admin.users")
   .input(
     z.object({
       // ELIMINADO: authToken: z.string()
