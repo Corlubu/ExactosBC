@@ -1,26 +1,35 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 
-export const getCurrentUser = baseProcedure
-  .input(z.object({}))
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
+// Cambiamos baseProcedure por protectedProcedure
+export const getCurrentUser = protectedProcedure
+  .input(
+    // Dejamos el input opcional para no romper el frontend si aún envía el authToken
+    z
+      .object({
+        authToken: z.string().optional(),
+      })
+      .optional(),
+  )
+  .query(({ ctx }) => {
+    // Ya no necesitamos llamar a authenticateRequest manualmente.
+    // protectedProcedure ya validó el token y nos dejó el usuario seguro en `ctx.user`.
+    const { user, permissions } = ctx;
 
     return {
-      id: auth.user.id,
-      email: auth.user.email,
-      firstName: auth.user.firstName,
-      lastName: auth.user.lastName,
-      companyId: auth.user.companyId,
-      companyName: auth.user.company.name,
-      role: auth.user.role
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      companyId: user.companyId,
+      companyName: user.company.name,
+      role: user.role
         ? {
-            id: auth.user.role.id,
-            name: auth.user.role.name,
-            description: auth.user.role.description,
+            id: user.role.id,
+            name: user.role.name,
+            description: user.role.description,
           }
         : null,
-      permissions: auth.permissions,
+      permissions: permissions, // Permisos extraídos directamente del middleware
     };
   });

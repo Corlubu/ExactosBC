@@ -2,6 +2,8 @@ services:
   redis:
     image: redis:7-alpine # Usar versiones alpine reduce vulnerabilidades y peso
     restart: unless-stopped
+    ports:
+      - "5432:5432"
     volumes:
       - redis-data:/data
 
