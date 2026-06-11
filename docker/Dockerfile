@@ -47,17 +47,31 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-# Crear usuario no root por seguridad (Best Practice)
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 reactjs
+# 1. Crear usuario con un directorio HOME explícito y asignarle el grupo
+RUN addgroup -S -g 1001 nodejs && \
+    adduser -S -u 1001 -h /home/reactjs -G nodejs reactjs
 
-# Instalar bash y OpenSSL (requerido por Prisma en Alpine)
-RUN apk add --no-cache bash openssl
+# Instalar dependencias del sistema
+RUN apk add --no-cache bash openssl tini
 
-# Copiar node_modules y el build desde la fase 1
+# 2. Instalar pnpm globalmente con npm (como root)
+RUN npm install -g pnpm@11.5.3
+
+# 3. Configurar el entorno para que pnpm tenga un lugar válido donde escribir
+ENV HOME=/home/reactjs
+ENV PNPM_HOME=/home/reactjs/.pnpm
+ENV COREPACK_ENABLE=0
+
+# Crear el directorio de caché de pnpm y dar permisos al usuario
+RUN mkdir -p $PNPM_HOME && chown reactjs:nodejs $PNPM_HOME
+
+# Copiar archivos desde la fase 1
 COPY --from=builder --chown=reactjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=reactjs:nodejs /app/.vinxi ./.vinxi
 COPY --from=builder --chown=reactjs:nodejs /app/package.json ./package.json
+
+# 4. Asegurar que el usuario tenga control total sobre /app (incluyendo subcarpetas)
+RUN chown -R reactjs:nodejs /app
 
 # Cambiar al usuario sin privilegios
 USER reactjs
@@ -67,5 +81,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV NODE_ENV=production
 
-# Comando de arranque nativo de Vinxi
-CMD ["pnpm", "start"]
+# Comando de arranque
+CMD ["node", "node_modules/vinxi/bin/cli.mjs", "start"]

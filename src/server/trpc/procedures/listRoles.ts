@@ -1,25 +1,22 @@
 import { z } from "zod";
 import { db } from "~/server/db";
 import { protectedProcedureWithPermission } from "~/server/trpc/main";
-import { checkContextPermission } from "~/server/utils/auth";
 
-export const listRoles = protectedProcedureWithPermission
+// Fíjate cómo pasamos el permiso requerido directamente aquí
+export const listRoles = protectedProcedureWithPermission("admin.roles")
   .input(
     z
       .object({
-        // ELIMINADO: authToken: z.string(),
         // Puedes añadir cursores o limitadores aquí en el futuro
       })
       .optional(), // Lo hacemos opcional por si no envían nada
   )
   .query(async ({ ctx }) => {
     // 1. Obtenemos los datos seguros desde el Contexto
-    const { companyId, user } = ctx;
+    // Ya no necesitas 'user' aquí a menos que uses su ID, el middleware ya validó todo.
+    const { companyId } = ctx;
 
-    // 2. Verificamos que tenga el permiso usando el nuevo Helper
-    await checkContextPermission(user.id, "admin.roles");
-
-    // 3. Ejecutamos la consulta filtrando por Tenant (companyId)
+    // 2. Ejecutamos la consulta filtrando por Tenant (companyId)
     const roles = await db.role.findMany({
       where: {
         companyId: companyId,

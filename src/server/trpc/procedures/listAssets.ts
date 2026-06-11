@@ -3,7 +3,7 @@ import { z } from "zod";
 import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listAssets = protectedProcedureWithPermission
+export const listAssets = protectedProcedureWithPermission("assets.view")
   .input(
     z.object({
       // ELIMINADO: authToken: z.string()

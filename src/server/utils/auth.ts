@@ -95,3 +95,25 @@ export async function createAuditLog(params: {
     },
   });
 }
+/**
+ * Verifica el token y comprueba si el usuario tiene un permiso específico.
+ */
+export async function requirePermission(
+  authToken: string,
+  requiredPermission: string,
+) {
+  // 1. Autenticar al usuario y obtener sus permisos
+  const auth = await authenticateRequest(authToken);
+
+  // 2. Verificar si el permiso requerido está en su lista de permisos
+  if (!auth.permissions.includes(requiredPermission)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `Access denied. Missing required permission: ${requiredPermission}`,
+    });
+  }
+
+  // 3. Retornar el objeto auth (que contiene user, companyId, y permissions)
+  // para que pueda ser usado en los procedimientos de tRPC
+  return auth;
+}
