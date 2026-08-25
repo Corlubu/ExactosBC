@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const createAlertSetting = baseProcedure
+export const createAlertSetting = protectedProcedure
   .input(
     z.object({
       name: z.string().min(1),
@@ -19,9 +19,7 @@ export const createAlertSetting = baseProcedure
       notifyUsers: z.boolean().default(true),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     // Validate that appropriate threshold is provided for the alert type
     if (
       input.alertType === "DEPRECIATION_MILESTONE" &&
@@ -39,7 +37,7 @@ export const createAlertSetting = baseProcedure
 
     const alertSetting = await db.alertSetting.create({
       data: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         name: input.name,
         alertType: input.alertType,
         isEnabled: input.isEnabled,

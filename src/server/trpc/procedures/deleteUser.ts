@@ -1,20 +1,18 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 
-export const deleteUser = baseProcedure
+export const deleteUser = protectedProcedure
   .input(
     z.object({
       userId: z.number(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.users");
-
+  .mutation(async ({ ctx, input }) => {
     // Prevent users from deleting themselves
-    if (input.userId === auth.user.id) {
+    if (input.userId === ctx.user.id) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "You cannot delete your own account",
@@ -33,7 +31,7 @@ export const deleteUser = baseProcedure
       });
     }
 
-    if (user.companyId !== auth.companyId) {
+    if (user.companyId !== ctx.companyId) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You can only delete users in your company",
@@ -48,8 +46,8 @@ export const deleteUser = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "DELETE",
       entityType: "USER",
       entityId: user.id,

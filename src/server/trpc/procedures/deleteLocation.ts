@@ -1,17 +1,15 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const deleteLocation = baseProcedure
+export const deleteLocation = protectedProcedure
   .input(
     z.object({
       id: z.number(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     const location = await db.location.findUnique({
       where: { id: input.id },
       include: {
@@ -22,7 +20,7 @@ export const deleteLocation = baseProcedure
       },
     });
 
-    if (!location || location.companyId !== auth.companyId) {
+    if (!location || location.companyId !== ctx.companyId) {
       throw new Error("Location not found");
     }
 
@@ -63,8 +61,8 @@ export const deleteLocation = baseProcedure
     });
 
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "DELETE",
       entityType: "LOCATION",
       entityId: input.id,

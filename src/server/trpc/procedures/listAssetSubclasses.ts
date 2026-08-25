@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 import { requirePermission } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const listAssetSubclasses = baseProcedure
+export const listAssetSubclasses = protectedProcedure
   .input(
     z.object({
       classId: z.number().optional(),
@@ -14,7 +14,7 @@ export const listAssetSubclasses = baseProcedure
 
     const assetSubclasses = await db.assetSubclass.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         ...(input.classId ? { classId: input.classId } : {}),
       },
       include: {

@@ -1,7 +1,7 @@
 You can create a procedure that streams multiple values with:
 
 ```
-const someStream = baseProcedure.query(async function* () {
+const someStream = protectedProcedure.query(async function* () {
   for (let i = 0; i < 3; i++) {
     await new Promise((resolve) => setTimeout(resolve, 500));
     yield {

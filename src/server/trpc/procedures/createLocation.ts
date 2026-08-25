@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const createLocation = baseProcedure
+export const createLocation = protectedProcedure
   .input(
     z.object({
       name: z.string().min(1, "Location name is required"),
@@ -16,16 +16,14 @@ export const createLocation = baseProcedure
       departmentId: z.number().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     // If parentId is provided, verify it belongs to the same company
     if (input.parentId) {
       const parentLocation = await db.location.findUnique({
         where: { id: input.parentId },
       });
 
-      if (!parentLocation || parentLocation.companyId !== auth.companyId) {
+      if (!parentLocation || parentLocation.companyId !== ctx.companyId) {
         throw new Error("Invalid parent location");
       }
     }
@@ -35,7 +33,7 @@ export const createLocation = baseProcedure
       const branch = await db.branch.findFirst({
         where: {
           id: input.branchId,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       });
 
@@ -49,7 +47,7 @@ export const createLocation = baseProcedure
       const department = await db.department.findFirst({
         where: {
           id: input.departmentId,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       });
 
@@ -73,13 +71,13 @@ export const createLocation = baseProcedure
         parentId: input.parentId,
         branchId: input.branchId,
         departmentId: input.departmentId,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
     });
 
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "CREATE",
       entityType: "LOCATION",
       entityId: location.id,

@@ -1,18 +1,16 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 
-export const deleteRole = baseProcedure
+export const deleteRole = protectedProcedure
   .input(
     z.object({
-      oleId: z.number(),
+      roleId: z.number(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.roles");
-
+  .mutation(async ({ ctx, input }) => {
     // Get existing role
     const role = await db.role.findUnique({
       where: { id: input.roleId },
@@ -32,7 +30,7 @@ export const deleteRole = baseProcedure
       });
     }
 
-    if (role.companyId !== auth.companyId) {
+    if (role.companyId !== ctx.companyId) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You can only delete roles in your company",
@@ -54,8 +52,8 @@ export const deleteRole = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "DELETE",
       entityType: "ROLE",
       entityId: role.id,

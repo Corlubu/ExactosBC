@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { minioClient } from "~/server/minio";
 import { getBaseUrl } from "~/server/utils/base-url";
 import { chromium } from "playwright";
@@ -19,11 +19,9 @@ const inputSchema = z.object({
   search: z.string().optional(),
 });
 
-export const exportAssetsReportPdf = baseProcedure
+export const exportAssetsReportPdf = protectedProcedure
   .input(inputSchema)
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "finance.reports");
-
+  .mutation(async ({ ctx, input }) => {
     // Ensure the reports bucket exists
     const bucketName = "reports";
     const bucketExists = await minioClient.bucketExists(bucketName);

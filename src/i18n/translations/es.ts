@@ -102,6 +102,7 @@ export const es = {
     description:
       "Configura tu sistema AssetMaster, gestiona usuarios y personaliza tu experiencia.",
     backToSettings: "Volver a Configuración",
+    location: "Nueva Ubicación",
 
     // Company Settings
     company: {
@@ -185,6 +186,18 @@ export const es = {
       locationNamePlaceholder: "ej., Almacén Principal",
       locationNameRequired: "El nombre de la ubicación es requerido",
       locationType: "Tipo de Ubicación",
+      locationTypes: {
+        WAREHOUSE: "Almacén",
+        OFFICE: "Oficina",
+        RETAIL: "Retail",
+        BUILDING: "Edificio",
+        ROOM: "Habitación",
+        FLOOR: "Piso",
+        DEPARTMENT: "Departamento",
+        STORAGE: "Área de Almacenamiento",
+        FACILITY: "Instalación",
+        OTHER: "Otro",
+      },
       selectType: "Selecciona tipo...",
       address: "Dirección",
       addressPlaceholder: "Dirección completa...",
@@ -195,6 +208,7 @@ export const es = {
       newLocation: "Nueva Ubicación",
       noLocations: "Aún no hay ubicaciones",
       locationTypeRequired: "El tipo de ubicación es requerido",
+      noLocationsAssigned: "No hay ubicaciones asignadas a esta sucursal",
     },
 
     // Branches
@@ -202,6 +216,7 @@ export const es = {
       title: "Sucursales",
       subtitle:
         "Gestiona sucursales de la empresa con códigos únicos para identificación de activos",
+      createBranch: "Crear Sucursal",
       addBranch: "Agregar Sucursal",
       newBranch: "Nueva Sucursal",
       editBranch: "Editar Sucursal",

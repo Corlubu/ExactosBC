@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listAlertSettings = baseProcedure
+export const listAlertSettings = protectedProcedure
   .input(
     z.object({
       alertType: z
@@ -16,15 +15,13 @@ export const listAlertSettings = baseProcedure
       isEnabled: z.boolean().optional(),
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .query(async ({ ctx, input }) => {
     const where: {
       companyId: number;
       alertType?: string;
       isEnabled?: boolean;
     } = {
-      companyId: auth.companyId,
+      companyId: ctx.companyId,
     };
 
     if (input.alertType) {

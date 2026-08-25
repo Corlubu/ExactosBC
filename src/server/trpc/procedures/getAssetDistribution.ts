@@ -1,17 +1,14 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const getAssetDistribution = baseProcedure
-  .input(z.object({}))
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+export const getAssetDistribution = protectedProcedure
+  .input(z.object({}).optional())
+  .query(async ({ ctx, input }) => {
     // Get all assets for the company
     const assets = await db.asset.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       select: {
         id: true,

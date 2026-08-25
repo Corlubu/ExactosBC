@@ -1,24 +1,21 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const getAssetValueTrends = baseProcedure
+export const getAssetValueTrends = protectedProcedure
   .input(
     z.object({
       months: z.number().min(1).max(36).default(12), // Last N months
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .query(async ({ ctx, input }) => {
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - input.months);
 
     // Get all assets with their depreciation history
     const assets = await db.asset.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       include: {
         depreciationCalculations: {

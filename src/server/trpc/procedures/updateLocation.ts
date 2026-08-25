@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 import { requirePermission, createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const updateLocation = baseProcedure
+export const updateLocation = protectedProcedure
   .input(
     z.object({
       id: z.number(),
@@ -17,9 +17,7 @@ export const updateLocation = baseProcedure
       departmentId: z.number().optional().nullable(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     const existingLocation = await db.location.findUnique({
       where: { id: input.id },
     });
@@ -50,7 +48,7 @@ export const updateLocation = baseProcedure
       const branch = await db.branch.findFirst({
         where: {
           id: input.branchId,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       });
 
@@ -64,7 +62,7 @@ export const updateLocation = baseProcedure
       const department = await db.department.findFirst({
         where: {
           id: input.departmentId,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       });
 
@@ -99,8 +97,8 @@ export const updateLocation = baseProcedure
     });
 
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "UPDATE",
       entityType: "LOCATION",
       entityId: location.id,

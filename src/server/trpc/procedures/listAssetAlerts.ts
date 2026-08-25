@@ -1,49 +1,49 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listAssetAlerts = baseProcedure
+export const listAssetAlerts = protectedProcedure
   .input(
-    z.object({
-      status: z.enum(["ACTIVE", "ACKNOWLEDGED", "DISMISSED"]).optional(),
-      assetId: z.number().optional(),
-      alertType: z
-        .enum([
-          "DEPRECIATION_MILESTONE",
-          "BOOK_VALUE_THRESHOLD",
-          "FULLY_DEPRECIATED",
-        ])
-        .optional(),
-      limit: z.number().min(1).max(100).default(50),
-    }),
+    z
+      .object({
+        status: z.enum(["ACTIVE", "ACKNOWLEDGED", "DISMISSED"]).optional(),
+        assetId: z.number().optional(),
+        alertType: z
+          .enum([
+            "DEPRECIATION_MILESTONE",
+            "BOOK_VALUE_THRESHOLD",
+            "FULLY_DEPRECIATED",
+          ])
+          .optional(),
+        limit: z.number().min(1).max(100).default(50),
+      })
+      .optional(), // Hacemos el input opcional por seguridad
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
+  .query(async ({ ctx, input }) => {
+    // 1. Extraemos SOLO el companyId del contexto seguro (¡NO usamos todo ctx!)
+    const { companyId } = ctx;
 
-    const where: {
-      companyId: number;
-      status?: string;
-      assetId?: number;
-      alertType?: string;
-    } = {
-      companyId: auth.companyId,
+    // 2. Construimos un objeto 'where' LIMPIO, estrictamente con columnas de la BD
+    const where: any = {
+      companyId: companyId,
     };
 
-    if (input.status) {
+    // 3. Agregamos los filtros opcionales si vienen en el input
+    if (input?.status) {
       where.status = input.status;
     }
 
-    if (input.assetId) {
+    if (input?.assetId) {
       where.assetId = input.assetId;
     }
 
-    if (input.alertType) {
+    if (input?.alertType) {
       where.alertType = input.alertType;
     }
 
+    // 4. Hacemos la consulta a Prisma
     const alerts = await db.assetAlert.findMany({
-      where,
+      where, // Ahora 'where' es seguro y Prisma lo entenderá
       include: {
         asset: {
           select: {
@@ -63,13 +63,13 @@ export const listAssetAlerts = baseProcedure
       orderBy: {
         triggeredAt: "desc",
       },
-      take: input.limit,
+      take: input?.limit || 50,
     });
 
     // Count active alerts for summary
     const activeCount = await db.assetAlert.count({
       where: {
-        companyId: auth.companyId,
+        companyId: companyId,
         status: "ACTIVE",
       },
     });

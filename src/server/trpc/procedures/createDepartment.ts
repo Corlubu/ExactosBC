@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const createDepartment = baseProcedure
+export const createDepartment = protectedProcedure
   .input(
     z.object({
       name: z.string().min(1, "Department name is required"),
@@ -12,14 +12,12 @@ export const createDepartment = baseProcedure
       departmentHeadId: z.number().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     // Check if branch exists and belongs to the company
     const branch = await db.branch.findFirst({
       where: {
         id: input.branchId,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
     });
 
@@ -32,7 +30,7 @@ export const createDepartment = baseProcedure
       const departmentHead = await db.user.findFirst({
         where: {
           id: input.departmentHeadId,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       });
 
@@ -57,7 +55,7 @@ export const createDepartment = baseProcedure
 
     const department = await db.department.create({
       data: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         branchId: input.branchId,
         name: input.name,
         code: input.code,
@@ -78,8 +76,8 @@ export const createDepartment = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "CREATE",
       entityType: "DEPARTMENT",
       entityId: department.id,

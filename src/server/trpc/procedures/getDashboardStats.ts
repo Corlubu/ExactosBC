@@ -1,17 +1,14 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const getDashboardStats = baseProcedure
-  .input(z.object({}))
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+export const getDashboardStats = protectedProcedure
+  .input(z.object({}).optional())
+  .query(async ({ ctx, input }) => {
     // Get total assets and value
     const assets = await db.asset.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       select: {
         status: true,
@@ -52,7 +49,7 @@ export const getDashboardStats = baseProcedure
     // Get recent audit logs
     const recentActivity = await db.auditLog.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       include: {
         user: true,
@@ -67,7 +64,7 @@ export const getDashboardStats = baseProcedure
     // Get upcoming maintenance
     const upcomingMaintenance = await db.maintenanceRecord.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         nextDueDate: {
           gte: new Date(),
           lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Next 30 days

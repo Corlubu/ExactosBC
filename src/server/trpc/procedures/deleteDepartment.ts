@@ -1,22 +1,20 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const deleteDepartment = baseProcedure
+export const deleteDepartment = protectedProcedure
   .input(
     z.object({
       id: z.number(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     // Check if department exists and belongs to the company
     const existingDepartment = await db.department.findFirst({
       where: {
         id: input.id,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       include: {
         _count: {
@@ -44,8 +42,8 @@ export const deleteDepartment = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "DELETE",
       entityType: "DEPARTMENT",
       entityId: input.id,

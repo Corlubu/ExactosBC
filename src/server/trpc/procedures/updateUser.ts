@@ -2,10 +2,10 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import bcryptjs from "bcryptjs";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 import { requirePermission, createAuditLog } from "~/server/utils/auth";
 
-export const updateUser = baseProcedure
+export const updateUser = protectedProcedure
   .input(
     z.object({
       userId: z.number(),
@@ -24,9 +24,7 @@ export const updateUser = baseProcedure
       departmentId: z.number().nullable().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.users");
-
+  .mutation(async ({ ctx, input }) => {
     // Get existing user
     const existingUser = await db.user.findUnique({
       where: { id: input.userId },
@@ -44,7 +42,7 @@ export const updateUser = baseProcedure
       });
     }
 
-    if (existingUser.companyId !== auth.companyId) {
+    if (existingUser.companyId !== ctx.companyId) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You can only update users in your company",
@@ -57,7 +55,7 @@ export const updateUser = baseProcedure
         where: {
           email_companyId: {
             email: input.email,
-            companyId: auth.companyId,
+            companyId: ctx.companyId,
           },
         },
       });
@@ -80,7 +78,7 @@ export const updateUser = baseProcedure
           where: {
             identificationNumber_companyId: {
               identificationNumber: input.identificationNumber,
-              companyId: auth.companyId,
+              companyId: ctx.companyId,
             },
           },
         });
@@ -101,7 +99,7 @@ export const updateUser = baseProcedure
         where: { id: input.roleId },
       });
 
-      if (!role || role.companyId !== auth.companyId) {
+      if (!role || role.companyId !== ctx.companyId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Invalid role",
@@ -114,7 +112,7 @@ export const updateUser = baseProcedure
       const branch = await db.branch.findFirst({
         where: {
           id: input.branchId,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       });
 
@@ -131,7 +129,7 @@ export const updateUser = baseProcedure
       const department = await db.department.findFirst({
         where: {
           id: input.departmentId,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       });
 
@@ -197,8 +195,8 @@ export const updateUser = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "UPDATE",
       entityType: "USER",
       entityId: updatedUser.id,

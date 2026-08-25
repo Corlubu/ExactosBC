@@ -1,26 +1,23 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 import { minioClient, minioBaseUrl } from "~/server/minio";
 import { getBaseUrl } from "~/server/utils/base-url";
 import { chromium } from "playwright";
 import { Readable } from "stream";
 
-export const generateCustodianCertificatePdf = baseProcedure
+export const generateCustodianCertificatePdf = protectedProcedure
   .input(
     z.object({
       custodianId: z.number(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .mutation(async ({ ctx, input }) => {
     // Verify the custodian belongs to the same company
     const custodian = await db.user.findFirst({
       where: {
         id: input.custodianId,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
     });
 
@@ -53,13 +50,13 @@ export const generateCustodianCertificatePdf = baseProcedure
       await page.goto(baseUrl);
       await page.evaluate((token) => {
         localStorage.setItem(
-          "auth-storage",
+          "assetmaster-auth",
           JSON.stringify({
             state: { authToken: token },
             version: 0,
           }),
         );
-      }, input.authToken);
+      }, ctx.token);
 
       // Navigate to the custody certificate page
       const certificateUrl = `${baseUrl}/app/custodians/${input.custodianId}`;

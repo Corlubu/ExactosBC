@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 import { requirePermission, createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const updateAsset = baseProcedure
+export const updateAsset = protectedProcedure
   .input(
     z.object({
       assetId: z.number(),
@@ -83,14 +83,12 @@ export const updateAsset = baseProcedure
       assignedToUserId: z.number().nullable().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "assets.edit");
-
+  .mutation(async ({ ctx, input }) => {
     // Get existing asset
     const existingAsset = await db.asset.findFirst({
       where: {
         id: input.assetId,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
     });
 
@@ -196,7 +194,7 @@ export const updateAsset = baseProcedure
     // Create audit log
     await createAuditLog({
       userId: auth.user.id,
-      companyId: auth.companyId,
+      companyId: ctx.companyId,
       action: "UPDATE",
       entityType: "ASSET",
       entityId: asset.id,

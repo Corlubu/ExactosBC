@@ -1,21 +1,18 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const checkDepreciationAlerts = baseProcedure
+export const checkDepreciationAlerts = protectedProcedure
   .input(
     z.object({
       assetId: z.number().optional(), // Optional: check only a specific asset
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .mutation(async ({ ctx, input }) => {
     // Get all enabled alert settings for this company
     const alertSettings = await db.alertSetting.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         isEnabled: true,
       },
     });
@@ -33,7 +30,7 @@ export const checkDepreciationAlerts = baseProcedure
       status: string;
       id?: number;
     } = {
-      companyId: auth.companyId,
+      companyId: ctx.companyId,
       status: "ACTIVE",
     };
 
@@ -137,7 +134,7 @@ export const checkDepreciationAlerts = baseProcedure
           if (!existingAlert) {
             await db.assetAlert.create({
               data: {
-                companyId: auth.companyId,
+                companyId: ctx.companyId,
                 assetId: asset.id,
                 alertSettingId: setting.id,
                 alertType: setting.alertType,

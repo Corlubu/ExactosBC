@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 import { requirePermission } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const updateUserCustodianDetails = baseProcedure
+export const updateUserCustodianDetails = protectedProcedure
   .input(
     z.object({
       userId: z.number(),
@@ -13,14 +13,12 @@ export const updateUserCustodianDetails = baseProcedure
       identificationNumber: z.string().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.users");
-
+  .mutation(async ({ ctx, input }) => {
     // Verify the user belongs to the same company
     const existingUser = await db.user.findFirst({
       where: {
         id: input.userId,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
     });
 
@@ -33,7 +31,7 @@ export const updateUserCustodianDetails = baseProcedure
       const duplicateUser = await db.user.findFirst({
         where: {
           identificationNumber: input.identificationNumber,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
           id: { not: input.userId },
         },
       });

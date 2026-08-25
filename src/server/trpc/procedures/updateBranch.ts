@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 import { requirePermission, createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const updateBranch = baseProcedure
+export const updateBranch = protectedProcedure
   .input(
     z.object({
       id: z.number(),
@@ -12,14 +12,12 @@ export const updateBranch = baseProcedure
       address: z.string().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     // Check if branch exists and belongs to the company
     const existingBranch = await db.branch.findFirst({
       where: {
         id: input.id,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
     });
 
@@ -32,7 +30,7 @@ export const updateBranch = baseProcedure
       const codeConflict = await db.branch.findFirst({
         where: {
           code: input.code,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
           id: { not: input.id },
         },
       });
@@ -53,8 +51,8 @@ export const updateBranch = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "UPDATE",
       entityType: "BRANCH",
       entityId: branch.id,

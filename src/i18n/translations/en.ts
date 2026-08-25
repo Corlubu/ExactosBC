@@ -102,6 +102,7 @@ export const en = {
     description:
       "Configure your AssetMaster system, manage users, and customize your experience.",
     backToSettings: "Back to Settings",
+    location: "New Location",
 
     // Company Settings
     company: {
@@ -184,12 +185,26 @@ export const en = {
       locationNameRequired: "Location name is required",
       locationType: "Location Type",
       selectType: "Select type...",
+      locationTypes: {
+        WAREHOUSE: "Warehouse",
+        OFFICE: "Office",
+        RETAIL: "Retail",
+        BUILDING: "Building",
+        ROOM: "Room",
+        FLOOR: "Floor",
+        DEPARTMENT: "Department",
+        STORAGE: "Storage Area",
+        FACILITY: "Facility",
+        OTHER: "Other",
+      },
       address: "Address",
       addressPlaceholder: "Full address...",
       locationCreated: "Location created successfully",
       locationUpdated: "Location updated successfully",
       locationDeleted: "Location deleted successfully",
       deleteConfirm: "Are you sure you want to delete this location?",
+      noLocations: "No locations assigned to this branch",
+      newLocation: "New Location",
     },
 
     // Branches
@@ -198,6 +213,7 @@ export const en = {
       subtitle:
         "Manage company branches with unique codes for asset identification",
       addBranch: "Add Branch",
+      createBranch: "Create Branch",
       newBranch: "New Branch",
       editBranch: "Edit Branch",
       branchCode: "Branch Code *",

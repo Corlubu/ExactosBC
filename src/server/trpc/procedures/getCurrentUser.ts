@@ -1,44 +1,27 @@
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 
-export const getCurrentUser = baseProcedure
-  .input(
-    // Aceptamos el token explícitamente para evitar problemas de hidratación de Zustand/SSR
-    z
-      .object({
-        authToken: z.string().optional(),
-      })
-      .optional(),
-  )
-  .query(async ({ input }) => {
-    const token = input?.authToken;
+export const getCurrentUser = protectedProcedure.query(({ ctx }) => {
+  // Si la petición viene del servidor (SSR) o el token no es válido,
+  // ctx.user estará vacío. En lugar de fallar, devolvemos null pacíficamente.
+  if (!ctx.user) {
+    return null;
+  }
 
-    if (!token) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "No authentication token provided",
-      });
-    }
-
-    // Autenticamos manualmente usando el token seguro que viajó en el payload
-    const auth = await authenticateRequest(token);
-
-    return {
-      id: auth.user.id,
-      email: auth.user.email,
-      firstName: auth.user.firstName,
-      lastName: auth.user.lastName,
-      companyId: auth.user.companyId,
-      companyName: auth.user.company.name,
-      role: auth.user.role
-        ? {
-            id: auth.user.role.id,
-            name: auth.user.role.name,
-            description: auth.user.role.description,
-          }
-        : null,
-      permissions: auth.permissions,
-    };
-  });
+  // Si llegamos aquí, el middleware ya validó el token exitosamente
+  return {
+    id: ctx.user.id,
+    email: ctx.user.email,
+    firstName: ctx.user.firstName,
+    lastName: ctx.user.lastName,
+    companyId: ctx.user.companyId,
+    companyName: ctx.user.company.name,
+    role: ctx.user.role
+      ? {
+          id: ctx.user.role.id,
+          name: ctx.user.role.name,
+          description: ctx.user.role.description,
+        }
+      : null,
+    permissions: ctx.permissions,
+  };
+});

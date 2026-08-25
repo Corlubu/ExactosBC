@@ -47,6 +47,7 @@ export const createTRPCContext = async (opts: { req: any; res: any }) => {
     user,
     companyId,
     permissions,
+    token,
   };
 };
 

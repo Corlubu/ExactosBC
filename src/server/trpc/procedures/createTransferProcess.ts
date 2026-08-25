@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const createTransferProcess = baseProcedure
+export const createTransferProcess = protectedProcedure
   .input(
     z.object({
       type: z.enum(["TRANSFER", "RECEPTION"]),
@@ -23,13 +23,11 @@ export const createTransferProcess = baseProcedure
         .optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "inventory.transfer");
-
+  .mutation(async ({ ctx, input }) => {
     // Create the inventory process
     const process = await db.inventoryProcess.create({
       data: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         type: input.type,
         status: "IN_PROGRESS",
         notes: input.notes,
@@ -54,8 +52,8 @@ export const createTransferProcess = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "CREATE",
       entityType: "INVENTORY_PROCESS",
       entityId: process.id,

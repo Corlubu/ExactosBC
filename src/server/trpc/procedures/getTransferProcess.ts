@@ -1,18 +1,15 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const getTransferProcess = baseProcedure
+export const getTransferProcess = protectedProcedure
   .input(
     z.object({
       processId: z.number(),
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .query(async ({ ctx, input }) => {
     const process = await db.inventoryProcess.findUnique({
       where: { id: input.processId },
       include: {
@@ -62,7 +59,7 @@ export const getTransferProcess = baseProcedure
       });
     }
 
-    if (process.companyId !== auth.companyId) {
+    if (process.companyId !== ctx.companyId) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Access denied",

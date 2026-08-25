@@ -42,7 +42,20 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
             url: getBaseUrl() + "/trpc",
             // 2. Inyectamos el Token en los Headers globales
             headers: () => {
-              const token = useAuthStore.getState().authToken;
+              let token = useAuthStore.getState().authToken;
+
+              // Si Zustand aún no carga (por los milisegundos al recargar la página),
+              // lo extraemos directamente y de forma síncrona del LocalStorage.
+              if (!token && typeof window !== "undefined") {
+                try {
+                  const stored = localStorage.getItem("assetmaster-auth");
+                  if (stored) {
+                    token = JSON.parse(stored).state.authToken;
+                  }
+                } catch (e) {
+                  // Ignoramos errores de parseo
+                }
+              }
               return {
                 Authorization: token ? `Bearer ${token}` : undefined,
               };

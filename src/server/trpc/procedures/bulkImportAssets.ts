@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 import QRCode from "qrcode";
 import { minioClient, minioBaseUrl } from "~/server/minio";
@@ -125,7 +125,7 @@ async function processQRCodesInBackground(
   }
 }
 
-export const bulkImportAssets = baseProcedure
+export const bulkImportAssets = protectedProcedure
   .input(
     z.object({
       assets: z
@@ -133,9 +133,7 @@ export const bulkImportAssets = baseProcedure
         .min(1, "At least one asset is required"),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "assets.create");
-
+  .mutation(async ({ ctx, input }) => {
     const results = {
       totalProcessed: input.assets.length,
       successCount: 0,
@@ -158,7 +156,7 @@ export const bulkImportAssets = baseProcedure
     const existingAssets = await db.asset.findMany({
       where: {
         assetTag: { in: assetTagsInInput },
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       select: { assetTag: true },
     });
@@ -180,8 +178,8 @@ export const bulkImportAssets = baseProcedure
         await db.$transaction(async (tx) => {
           const asset = await tx.asset.create({
             data: {
-              companyId: auth.companyId,
-              enteredById: auth.user.id,
+              companyId: ctx.companyId,
+              enteredById: ctx.user.id,
               assetTag: assetData.assetTag,
               name: assetData.name,
               description: assetData.description,
@@ -276,8 +274,8 @@ export const bulkImportAssets = baseProcedure
     processQRCodesInBackground(assetsForQrProcessing).catch(console.error);
 
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "BULK_IMPORT",
       entityType: "ASSET",
       entityId: 0,

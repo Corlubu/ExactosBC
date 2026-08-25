@@ -1,7 +1,7 @@
 Here's how you can define a tRPC subscription procedure which can push updated data to the client when state changes:
 
 ```
-export const someSubscriptionProcedure = baseProcedure
+export const someSubscriptionProcedure = protectedProcedure
   .input(
     z.object({
       // ...

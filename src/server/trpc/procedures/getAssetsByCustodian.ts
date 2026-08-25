@@ -1,22 +1,19 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const getAssetsByCustodian = baseProcedure
+export const getAssetsByCustodian = protectedProcedure
   .input(
     z.object({
       custodianId: z.number(),
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .query(async ({ ctx, input }) => {
     // Verify the custodian belongs to the same company
     const custodian = await db.user.findFirst({
       where: {
         id: input.custodianId,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       select: {
         id: true,
@@ -38,7 +35,7 @@ export const getAssetsByCustodian = baseProcedure
         userId: input.custodianId,
         endDate: null, // Only active assignments
         asset: {
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       },
       include: {

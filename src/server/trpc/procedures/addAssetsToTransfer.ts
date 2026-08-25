@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const addAssetsToTransfer = baseProcedure
+export const addAssetsToTransfer = protectedProcedure
   .input(
     z.object({
       processId: z.number(),
@@ -20,9 +20,7 @@ export const addAssetsToTransfer = baseProcedure
       ),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "inventory.transfer");
-
+  .mutation(async ({ ctx, input }) => {
     // Verify the process exists and is in progress
     const process = await db.inventoryProcess.findUnique({
       where: { id: input.processId },
@@ -35,7 +33,7 @@ export const addAssetsToTransfer = baseProcedure
       });
     }
 
-    if (process.companyId !== auth.companyId) {
+    if (process.companyId !== ctx.companyId) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Access denied",
@@ -64,8 +62,8 @@ export const addAssetsToTransfer = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "UPDATE",
       entityType: "INVENTORY_PROCESS",
       entityId: process.id,

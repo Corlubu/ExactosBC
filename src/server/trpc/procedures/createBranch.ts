@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const createBranch = baseProcedure
+export const createBranch = protectedProcedure
   .input(
     z.object({
       name: z.string().min(1, "Branch name is required"),
@@ -11,14 +11,12 @@ export const createBranch = baseProcedure
       address: z.string().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     // Check if branch code already exists for this company
     const existingBranch = await db.branch.findFirst({
       where: {
         code: input.code,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
     });
 
@@ -28,7 +26,7 @@ export const createBranch = baseProcedure
 
     const branch = await db.branch.create({
       data: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         name: input.name,
         code: input.code,
         address: input.address,
@@ -37,8 +35,8 @@ export const createBranch = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "CREATE",
       entityType: "BRANCH",
       entityId: branch.id,

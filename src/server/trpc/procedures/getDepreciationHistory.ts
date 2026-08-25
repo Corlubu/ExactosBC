@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const getDepreciationHistory = baseProcedure
+export const getDepreciationHistory = protectedProcedure
   .input(
     z.object({
       startDate: z.string().optional(),
@@ -11,9 +10,7 @@ export const getDepreciationHistory = baseProcedure
       assetId: z.number().optional(),
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .query(async ({ ctx, input }) => {
     // Build where clause
     const where: {
       asset: {
@@ -26,7 +23,7 @@ export const getDepreciationHistory = baseProcedure
       };
     } = {
       asset: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
     };
 

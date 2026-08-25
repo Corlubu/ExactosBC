@@ -8,11 +8,13 @@ export const minioBaseUrl = getBaseUrl({ port: 9000 });
 const parsedUrl = new URL(minioBaseUrl);
 
 export const minioClient = new Client({
-  endPoint:
-    process.env.NODE_ENV === "development" ? "minio" : parsedUrl.hostname,
+  // SOLUCIÓN: Leer de la variable de entorno, si no existe usar parsedUrl.hostname
+  endPoint: process.env.MINIO_ENDPOINT || parsedUrl.hostname,
 
   port: parseInt(parsedUrl.port) || 9000,
   useSSL: parsedUrl.protocol === "https:",
-  accessKey: "admin",
-  secretKey: env.ADMIN_PASSWORD,
+
+  // SOLUCIÓN: Es mejor leer también estas credenciales desde el .env
+  accessKey: process.env.MINIO_ACCESS_KEY || "admin",
+  secretKey: process.env.MINIO_SECRET_KEY || env.ADMIN_PASSWORD,
 });

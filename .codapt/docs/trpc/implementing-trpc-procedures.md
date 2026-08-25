@@ -13,9 +13,9 @@ src/server/trpc/procedures/getPostContent.ts
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 
-export const getPostContent = baseProcedure
+export const getPostContent = protectedProcedure
   .input(z.object({ postId: z.number() }))
   .query(async ({ input }) => {
     const post = await db.post.findUnique({
@@ -43,11 +43,11 @@ src/server/trpc/procedures/updatePostContent.ts
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 
-export const updatePostContent = baseProcedure
+export const updatePostContent = protectedProcedure
   .input(z.object({ authToken: z.string(), postId: z.number(), content: z.string() }))
-  .mutation(async ({ input }) => {
+  .mutation(async ({ ctx, input }) => {
     // we probably have some authentication logic here related to checking the auth token
 
     // make sure the post exists
@@ -98,7 +98,7 @@ export const appRouter = createTRPCRouter({
 When we are implementing pagination, we should use a `cursor` input parameter of any type and return a `nextCursor` in the response parameter in the response:
 
 ```
-export const paginatedProcedure = baseProcedure
+export const paginatedProcedure = protectedProcedure
   .input(z.object({ cursor: z.string() }))
   .query(async ({ input }) => {
     // ...

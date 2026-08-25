@@ -3,7 +3,7 @@ import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
 export const listPermissions = protectedProcedureWithPermission("admin.users")
-  .input(z.object({}).optional()) // El input puede ir vacío ahora
+  .input(z.object({}).optional().optional()) // El input puede ir vacío ahora
   .query(async () => {
     const permissions = await db.permission.findMany({
       orderBy: [{ category: "asc" }, { name: "asc" }],

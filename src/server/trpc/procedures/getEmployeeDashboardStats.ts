@@ -1,18 +1,15 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const getEmployeeDashboardStats = baseProcedure
-  .input(z.object({}))
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+export const getEmployeeDashboardStats = protectedProcedure
+  .input(z.object({}).optional())
+  .query(async ({ ctx, input }) => {
     // Get assets currently assigned to the user
     const assignedAssets = await db.asset.findMany({
       where: {
-        companyId: auth.companyId,
-        assignedToUserId: auth.user.id,
+        companyId: ctx.companyId,
+        assignedToUserId: ctx.user.id,
         status: {
           in: ["ACTIVE", "IN_REPAIR"],
         },
@@ -37,7 +34,7 @@ export const getEmployeeDashboardStats = baseProcedure
     // Get recent asset movements involving the user (last 30 days)
     const recentMovements = await db.assetMovement.findMany({
       where: {
-        OR: [{ fromUserId: auth.user.id }, { toUserId: auth.user.id }],
+        OR: [{ fromUserId: ctx.user.id }, { toUserId: ctx.user.id }],
         movementDate: {
           gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
         },
@@ -59,8 +56,8 @@ export const getEmployeeDashboardStats = baseProcedure
     // Get work orders assigned to the user
     const assignedWorkOrders = await db.workOrder.findMany({
       where: {
-        companyId: auth.companyId,
-        assignedToId: auth.user.id,
+        companyId: ctx.companyId,
+        assignedToId: ctx.user.id,
         status: {
           in: ["OPEN", "IN_PROGRESS"],
         },
@@ -82,9 +79,9 @@ export const getEmployeeDashboardStats = baseProcedure
     // Get upcoming maintenance for user's assigned assets
     const upcomingMaintenance = await db.maintenanceRecord.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         asset: {
-          assignedToUserId: auth.user.id,
+          assignedToUserId: ctx.user.id,
         },
         nextDueDate: {
           gte: new Date(),
@@ -103,12 +100,12 @@ export const getEmployeeDashboardStats = baseProcedure
     // Get recent audit logs for user's assets
     const recentActivity = await db.auditLog.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         OR: [
-          { userId: auth.user.id },
+          { userId: ctx.user.id },
           {
             asset: {
-              assignedToUserId: auth.user.id,
+              assignedToUserId: ctx.user.id,
             },
           },
         ],

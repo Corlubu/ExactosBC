@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest, requirePermission } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 import { minioClient } from "~/server/minio";
 
@@ -90,7 +90,7 @@ function convertToCSV(data: any[]): string {
   return csvContent;
 }
 
-export const exportAssetsReport = baseProcedure
+export const exportAssetsReport = protectedProcedure
   .input(
     z.object({
       status: z.string().optional(),
@@ -105,9 +105,7 @@ export const exportAssetsReport = baseProcedure
       search: z.string().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "finance.reports");
-
+  .mutation(async ({ ctx, input }) => {
     // Build the same where clause as listAssetsForReport
     const where: {
       companyId: number;
@@ -127,7 +125,7 @@ export const exportAssetsReport = baseProcedure
         | { assetTag: { contains: string; mode: "insensitive" } }
       >;
     } = {
-      companyId: auth.companyId,
+      companyId: ctx.companyId,
     };
 
     if (input.status) {

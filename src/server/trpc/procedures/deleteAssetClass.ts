@@ -1,22 +1,20 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const deleteAssetClass = baseProcedure
+export const deleteAssetClass = protectedProcedure
   .input(
     z.object({
       id: z.number(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     // Check if asset class exists and belongs to the company
     const assetClass = await db.assetClass.findFirst({
       where: {
         id: input.id,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       include: {
         _count: {
@@ -47,8 +45,8 @@ export const deleteAssetClass = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "DELETE",
       entityType: "ASSET_CLASS",
       entityId: assetClass.id,

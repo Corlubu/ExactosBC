@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 
-export const createAssetSubclass = baseProcedure
+export const createAssetSubclass = protectedProcedure
   .input(
     z.object({
       classId: z.number(),
@@ -11,14 +11,12 @@ export const createAssetSubclass = baseProcedure
       abbreviation: z.string().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .mutation(async ({ ctx, input }) => {
     // Verify asset class exists and belongs to company
     const assetClass = await db.assetClass.findFirst({
       where: {
         id: input.classId,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       include: {
         assetType: true,
@@ -31,7 +29,7 @@ export const createAssetSubclass = baseProcedure
 
     const assetSubclass = await db.assetSubclass.create({
       data: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         classId: input.classId,
         description: input.description,
         abbreviation: input.abbreviation,
@@ -47,8 +45,8 @@ export const createAssetSubclass = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "CREATE",
       entityType: "ASSET_SUBCLASS",
       entityId: assetSubclass.id,

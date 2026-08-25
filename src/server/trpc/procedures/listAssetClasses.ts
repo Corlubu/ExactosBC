@@ -1,20 +1,19 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission } from "~/server/utils/auth";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listAssetClasses = baseProcedure
+export const listAssetClasses = protectedProcedureWithPermission(
+  "settings.view",
+)
   .input(
     z.object({
       assetTypeId: z.number().optional(),
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.settings");
-
+  .query(async ({ ctx, input }) => {
     const assetClasses = await db.assetClass.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         ...(input.assetTypeId ? { assetTypeId: input.assetTypeId } : {}),
       },
       include: {

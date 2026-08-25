@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 
-export const updateCompanySettings = baseProcedure
+export const updateCompanySettings = protectedProcedure
   .input(
     z.object({
       name: z.string().min(1, "Company name is required"),
@@ -27,13 +26,11 @@ export const updateCompanySettings = baseProcedure
       barcodeLabelConfig: z.any().optional(), // JSON object for label configuration
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .mutation(async ({ ctx, input }) => {
     // Get current company data for audit log
     const currentCompany = await db.company.findUnique({
       where: {
-        id: auth.companyId,
+        id: ctx.companyId,
       },
     });
 
@@ -47,7 +44,7 @@ export const updateCompanySettings = baseProcedure
     // Update company
     const updatedCompany = await db.company.update({
       where: {
-        id: auth.companyId,
+        id: ctx.companyId,
       },
       data: {
         name: input.name,
@@ -82,11 +79,11 @@ export const updateCompanySettings = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "UPDATE",
       entityType: "COMPANY",
-      entityId: auth.companyId,
+      entityId: ctx.companyId,
       oldValues: {
         name: currentCompany.name,
         logoUrl: currentCompany.logoUrl,

@@ -1,19 +1,16 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 import { TRPCError } from "@trpc/server";
 
-export const markAlertAsRead = baseProcedure
+export const markAlertAsRead = protectedProcedure
   .input(
     z.object({
       alertId: z.number(),
       status: z.enum(["ACKNOWLEDGED", "DISMISSED"]),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .mutation(async ({ ctx, input }) => {
     // Verify the alert exists and belongs to the user's company
     const existing = await db.assetAlert.findUnique({
       where: { id: input.alertId },
@@ -26,7 +23,7 @@ export const markAlertAsRead = baseProcedure
       });
     }
 
-    if (existing.companyId !== auth.companyId) {
+    if (existing.companyId !== ctx.companyId) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You do not have permission to update this alert",

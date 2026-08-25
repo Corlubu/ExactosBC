@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest, requirePermission } from "~/server/utils/auth";
+import { protectedProcedureWithPermission } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listAssetsForReport = baseProcedure
+export const listAssetsForReport = protectedProcedureWithPermission(
+  "finance.reports",
+)
   .input(
     z.object({
       status: z.string().optional(),
@@ -18,9 +19,7 @@ export const listAssetsForReport = baseProcedure
       search: z.string().optional(),
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "finance.reports");
-
+  .query(async ({ ctx, input }) => {
     const where: {
       companyId: number;
       status?: string;
@@ -39,7 +38,7 @@ export const listAssetsForReport = baseProcedure
         | { assetTag: { contains: string; mode: "insensitive" } }
       >;
     } = {
-      companyId: auth.companyId,
+      companyId: ctx.companyId,
     };
 
     if (input.status) {

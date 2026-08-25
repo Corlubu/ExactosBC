@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listTransferProcesses = baseProcedure
+export const listTransferProcesses = protectedProcedure
   .input(
     z.object({
       cursor: z.number().optional(),
@@ -12,15 +11,13 @@ export const listTransferProcesses = baseProcedure
       type: z.enum(["TRANSFER", "RECEPTION"]).optional(),
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .query(async ({ ctx, input }) => {
     const where: {
       companyId: number;
       type?: { in: string[] };
       status?: string;
     } = {
-      companyId: auth.companyId,
+      companyId: ctx.companyId,
       type: { in: ["TRANSFER", "RECEPTION"] },
     };
 

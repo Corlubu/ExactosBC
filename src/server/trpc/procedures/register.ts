@@ -3,10 +3,10 @@ import { TRPCError } from "@trpc/server";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 import { env } from "~/server/env";
 
-export const register = baseProcedure
+export const register = protectedProcedure
   .input(
     z.object({
       email: z.string().email(),
@@ -14,9 +14,9 @@ export const register = baseProcedure
       firstName: z.string().min(1, "First name is required"),
       lastName: z.string().min(1, "Last name is required"),
       companyName: z.string().min(1, "Company name is required"),
-    })
+    }),
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ ctx, input }) => {
     // Check if user already exists
     const existingUser = await db.user.findFirst({
       where: {
@@ -91,7 +91,7 @@ export const register = baseProcedure
     const authToken = jwt.sign(
       { userId: user.id, companyId: company.id },
       env.JWT_SECRET,
-      { expiresIn: "30d" }
+      { expiresIn: "30d" },
     );
 
     return {

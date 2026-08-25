@@ -1,16 +1,13 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listLocations = baseProcedure
-  .input(z.object({}))
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+export const listLocations = protectedProcedure
+  .input(z.object({}).optional())
+  .query(async ({ ctx, input }) => {
     const locations = await db.location.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       orderBy: {
         name: "asc",

@@ -265,7 +265,7 @@ function LocationsPage() {
                     </option>
                     {locationTypes.map((type) => (
                       <option key={type} value={type}>
-                        {t(`locationTypes.${type}`)}
+                        {t(`settings.locations.locationTypes.${type}`)}
                       </option>
                     ))}
                   </select>
@@ -490,7 +490,9 @@ function LocationsPage() {
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                          {t(`locationTypes.${location.type}`)}
+                          {t(
+                            `settings.locations.locationTypes.${location.type}`,
+                          )}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">

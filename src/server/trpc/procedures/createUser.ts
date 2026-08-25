@@ -2,10 +2,10 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import bcryptjs from "bcryptjs";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission, createAuditLog } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 
-export const createUser = baseProcedure
+export const createUser = protectedProcedure
   .input(
     z.object({
       email: z.string().email(),
@@ -20,15 +20,13 @@ export const createUser = baseProcedure
       departmentId: z.number().optional(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "admin.users");
-
+  .mutation(async ({ ctx, input }) => {
     // Check if user with this email already exists in the company
     const existingUserByEmail = await db.user.findUnique({
       where: {
         email_companyId: {
           email: input.email,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       },
     });
@@ -46,7 +44,7 @@ export const createUser = baseProcedure
         where: {
           identificationNumber_companyId: {
             identificationNumber: input.identificationNumber,
-            companyId: auth.companyId,
+            companyId: ctx.companyId,
           },
         },
       });
@@ -66,7 +64,7 @@ export const createUser = baseProcedure
         where: { id: input.roleId },
       });
 
-      if (!role || role.companyId !== auth.companyId) {
+      if (!role || role.companyId !== ctx.companyId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Invalid role",
@@ -79,7 +77,7 @@ export const createUser = baseProcedure
       const branch = await db.branch.findFirst({
         where: {
           id: input.branchId,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       });
 
@@ -96,7 +94,7 @@ export const createUser = baseProcedure
       const department = await db.department.findFirst({
         where: {
           id: input.departmentId,
-          companyId: auth.companyId,
+          companyId: ctx.companyId,
         },
       });
 
@@ -126,7 +124,7 @@ export const createUser = baseProcedure
         passwordHash,
         firstName: input.firstName,
         lastName: input.lastName,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         roleId: input.roleId,
         position: input.position,
         identificationNumber: input.identificationNumber,
@@ -143,8 +141,8 @@ export const createUser = baseProcedure
 
     // Create audit log
     await createAuditLog({
-      userId: auth.user.id,
-      companyId: auth.companyId,
+      userId: ctx.user.id,
+      companyId: ctx.companyId,
       action: "CREATE",
       entityType: "USER",
       entityId: user.id,

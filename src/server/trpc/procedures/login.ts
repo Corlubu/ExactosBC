@@ -3,17 +3,17 @@ import { TRPCError } from "@trpc/server";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "~/server/db";
-import { baseProcedure } from "~/server/trpc/main";
+import { protectedProcedure } from "~/server/trpc/main";
 import { env } from "~/server/env";
 
-export const login = baseProcedure
+export const login = protectedProcedure
   .input(
     z.object({
       email: z.string().email(),
       password: z.string(),
-    })
+    }),
   )
-  .mutation(async ({ input }) => {
+  .mutation(async ({ ctx, input }) => {
     // Find user
     const user = await db.user.findFirst({
       where: {
@@ -41,7 +41,7 @@ export const login = baseProcedure
     // Verify password
     const isPasswordValid = await bcryptjs.compare(
       input.password,
-      user.passwordHash
+      user.passwordHash,
     );
 
     if (!isPasswordValid) {
@@ -55,7 +55,7 @@ export const login = baseProcedure
     const authToken = jwt.sign(
       { userId: user.id, companyId: user.companyId },
       env.JWT_SECRET,
-      { expiresIn: "30d" }
+      { expiresIn: "30d" },
     );
 
     return {

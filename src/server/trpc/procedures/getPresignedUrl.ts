@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { minioClient, minioBaseUrl } from "~/server/minio";
 
-export const getPresignedUrl = baseProcedure
+export const getPresignedUrl = protectedProcedure
   .input(
     z.object({
       fileName: z.string(),
@@ -18,9 +17,7 @@ export const getPresignedUrl = baseProcedure
       ]),
     }),
   )
-  .mutation(async ({ input }) => {
-    await authenticateRequest(input.authToken);
-
+  .mutation(async ({ ctx, input }) => {
     // Generate unique object name with timestamp to avoid collisions
     const timestamp = Date.now();
     const sanitizedFileName = input.fileName.replace(/[^a-zA-Z0-9.-]/g, "_");

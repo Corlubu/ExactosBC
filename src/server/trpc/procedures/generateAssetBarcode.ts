@@ -1,25 +1,23 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { baseProcedure } from "~/server/trpc/main";
-import { requirePermission } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 import { db } from "~/server/db";
 import { minioClient, minioBaseUrl } from "~/server/minio";
 import QRCode from "qrcode";
 
-export const generateAssetBarcode = baseProcedure
+export const generateAssetBarcode = protectedProcedure
   .input(
     z.object({
       assetId: z.number(),
     }),
   )
-  .mutation(async ({ input }) => {
-    const auth = await requirePermission(input.authToken, "assets.edit");
-
+  .mutation(async ({ ctx, input }) => {
     // Fetch the asset to ensure it exists and belongs to the user's company
     const asset = await db.asset.findFirst({
       where: {
         id: input.assetId,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
     });
 

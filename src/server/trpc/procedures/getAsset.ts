@@ -1,22 +1,19 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const getAsset = baseProcedure
+export const getAsset = protectedProcedure
   .input(
     z.object({
       assetId: z.number(),
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .query(async ({ ctx, input }) => {
     const asset = await db.asset.findFirst({
       where: {
         id: input.assetId,
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
       },
       include: {
         location: true,

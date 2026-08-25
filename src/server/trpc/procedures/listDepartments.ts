@@ -1,20 +1,17 @@
 import { z } from "zod";
-import { baseProcedure } from "~/server/trpc/main";
-import { authenticateRequest } from "~/server/utils/auth";
+import { protectedProcedure } from "~/server/trpc/main";
 import { db } from "~/server/db";
 
-export const listDepartments = baseProcedure
+export const listDepartments = protectedProcedure
   .input(
     z.object({
       branchId: z.number().optional(),
     }),
   )
-  .query(async ({ input }) => {
-    const auth = await authenticateRequest(input.authToken);
-
+  .query(async ({ ctx, input }) => {
     const departments = await db.department.findMany({
       where: {
-        companyId: auth.companyId,
+        companyId: ctx.companyId,
         ...(input.branchId ? { branchId: input.branchId } : {}),
       },
       orderBy: [{ branch: { code: "asc" } }, { code: "asc" }],
