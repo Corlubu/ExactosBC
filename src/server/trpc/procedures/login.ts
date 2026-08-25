@@ -3,10 +3,10 @@ import { TRPCError } from "@trpc/server";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "~/server/db";
-import { protectedProcedure } from "~/server/trpc/main";
+import { baseProcedure } from "~/server/trpc/main";
 import { env } from "~/server/env";
 
-export const login = protectedProcedure
+export const login = baseProcedure
   .input(
     z.object({
       email: z.string().email(),
