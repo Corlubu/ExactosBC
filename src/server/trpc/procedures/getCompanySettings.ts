@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { db } from "~/server/db";
-import { protectedProcedure } from "~/server/trpc/main";
+import { baseProcedure } from "~/server/trpc/main";
 
 // Eliminamos .input() porque la consulta no recibe parámetros del cliente
-export const getCompanySettings = protectedProcedure.query(async ({ ctx }) => {
+export const getCompanySettings = baseProcedure.query(async ({ ctx }) => {
   let company;
 
   // 1. Si el usuario ya inició sesión, el middleware en main.ts
