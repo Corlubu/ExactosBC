@@ -90,7 +90,7 @@ export const es = {
     tagline: "Gestiona Tus Activos Con Confianza",
     description:
       "Gestión integral de activos fijos y seguimiento de mantenimiento para empresas modernas.",
-    copyright: "© 2024 AssetMaster Web. Todos los derechos reservados.",
+    copyright: "© 2026 AssetMaster Web. Todos los derechos reservados.",
     startManaging: "Comienza a Gestionar Tus Activos Hoy",
     joinThousands:
       "Únete a miles de empresas que usan AssetMaster para rastrear, mantener y optimizar sus activos fijos.",
