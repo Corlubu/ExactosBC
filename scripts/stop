@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-cd `dirname $0`
-cd ..
-
-.codapt/scripts/stop
+# Ya no hay contenedores que detener: "pnpm dev" corre en primer plano,
+# basta con Ctrl+C en esa terminal para detenerlo.
+echo "No hay contenedores Docker que detener. Usa Ctrl+C en la terminal donde corre 'pnpm dev'."

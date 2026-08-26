@@ -4,5 +4,5 @@ set -e
 cd `dirname $0`
 cd ..
 
-.codapt/scripts/setup
-.codapt/scripts/run
+pnpm install
+pnpm dev

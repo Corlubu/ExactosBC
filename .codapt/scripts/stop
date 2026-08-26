@@ -1,8 +1,5 @@
 #!/bin/bash
 
-set -e
-cd `dirname $0`
-cd .. # .codapt
-cd .. # project root
-
-scripts/docker-compose down --remove-orphans
+# Ya no hay contenedores Docker que detener; "pnpm dev" corre en primer
+# plano y se detiene con Ctrl+C.
+echo "No hay contenedores Docker que detener."

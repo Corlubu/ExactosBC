@@ -4,4 +4,6 @@ set -e
 cd `dirname $0`
 cd ..
 
-.codapt/scripts/check-code
+pnpm install
+pnpm typecheck
+pnpm lint
