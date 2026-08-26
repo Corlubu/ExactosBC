@@ -90,7 +90,7 @@ export const en = {
     tagline: "Manage Your Assets With Confidence",
     description:
       "Comprehensive fixed asset management and maintenance tracking for modern enterprises.",
-    copyright: "© 2024 AssetMaster Web. All rights reserved.",
+    copyright: "© 2026 AssetMaster Web. All rights reserved.",
     startManaging: "Start Managing Your Assets Today",
     joinThousands:
       "Join thousands of companies using AssetMaster to track, maintain, and optimize their fixed assets.",
