@@ -2,6 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { db } from "~/server/db";
 import { protectedProcedure } from "~/server/trpc/main";
+import { createAuditLog } from "~/server/utils/auth";
 
 export const updateCompanySettings = protectedProcedure
   .input(
